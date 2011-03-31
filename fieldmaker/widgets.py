@@ -9,12 +9,14 @@ class BaseWidgetForm(forms.Form):
 class BaseWidget(object):
     form = BaseWidgetForm
     widget = None
+    identities = []
     
     def create_widget(self, data):
         return self.widget(**data)
 
 class TextInput(BaseWidget):
     widget = widgets.TextInput
+    identities = ['CharField', 'DateField', 'DateTimeField', 'DecimalField', 'EmailField', 'FloatField', 'IntegerField', 'IPAddressField', 'RegexField', 'SlugField', 'TimeField', 'URLField']
 
 field_registry.register_widget('TextInput', TextInput)
 
@@ -23,6 +25,7 @@ class PasswordInputWidgetForm(BaseWidgetForm):
 
 class PasswordInput(BaseWidget):
     widget = widgets.PasswordInput
+    identities = ['CharField']
 
 field_registry.register_widget('PasswordInput', PasswordInput)
 
@@ -38,11 +41,13 @@ field_registry.register_widget('MultipleHiddenInput', MultipleHiddenInput)
 
 class FileInput(BaseWidget):
     widget = widgets.FileInput
+    identities = ['FileField']
 
 field_registry.register_widget('FileInput', FileInput)
 
 class Textarea(BaseWidget):
     widget = widgets.Textarea
+    identities = ['CharField']
 
 field_registry.register_widget('Textarea', Textarea)
 
@@ -52,6 +57,7 @@ class DateInputWidgetForm(BaseWidgetForm):
 class DateInput(BaseWidget):
     widget = widgets.DateInput
     form = DateInputWidgetForm
+    identities = ['DateField']
 
 field_registry.register_widget('DateInput', DateInput)
 
@@ -61,6 +67,7 @@ class DateTimeInputWidgetForm(BaseWidgetForm):
 class DateTimeInput(BaseWidget):
     widget = widgets.DateTime
     form = DateTimeInputWidgetForm
+    identities = ['DateTimeField']
 
 field_registry.register_widget('DateTimeInput', DateTimeInput)
 
@@ -70,11 +77,13 @@ class TimeInputWidgetForm(BaseWidgetForm):
 class TimeInput(BaseWidget):
     widget = widgets.TimeInput
     form = TimeInputWidgetForm
+    identities = ['TimeField']
 
 field_registry.register_widget('TimeInput', TimeInput)
 
 class CheckboxInput(BaseWidget):
     widget = widgets.CheckboxInput
+    identities = ['BooleanField']
 
 field_registry.register_widget('CheckboxInput', CheckboxInput)
 
@@ -82,11 +91,13 @@ class Select(BaseWidget):
     widget = widgets.Select
     #TODO choices
     form = BaseWidgetForm
+    identities = ['ChoiceField']
 
 field_registry.register_widget('Select', Select)
 
 class NullBooleanSelect(BaseWidget):
     widget = widgets.NullBooleanSelect
+    identities = ['ChoiceField']
 
 field_registry.register_widget('NullBooleanSelect', NullBooleanSelect)
 
@@ -117,12 +128,14 @@ class SlpitDateTimeInputWidgetForm(BaseWidgetForm):
 class SplitDateTimeWidget(BaseWidget):
     widget = widgets.SplitDateTimeWidget
     form = SlpitDateTimeInputWidgetForm
+    identities = ['DateTimeField']
 
 field_registry.register_widget('SplitDateTimeWidget', SplitDateTimeWidget)
 
 class SplitHiddenDateTimeWidget(BaseWidget):
     widgets = widgets.SplitHiddenDateTimeWidget
     form = SlpitDateTimeInputWidgetForm
+    identities = ['DateTimeField']
 
 field_registry.register_widget('SplitHiddenDateTimeWidget', SplitHiddenDateTimeWidget)
 

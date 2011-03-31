@@ -20,10 +20,13 @@ class BaseField(object):
     def widget_choices(self):
         choices = list()
         for widget in field_registry.widgets.itervalues():
-            for identity in widget.identities:
-                if identity in self.identities:
-                    choices.append(identity)
-                    break
+            if not widget.identities:
+                choices.append(widget)
+            else:
+                for identity in widget.identities:
+                    if identity in self.identities:
+                        choices.append(widget)
+                        break
         return choices
 
 class BooleanField(BaseField):
