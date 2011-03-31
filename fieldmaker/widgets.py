@@ -103,21 +103,19 @@ field_registry.register_widget('NullBooleanSelect', NullBooleanSelect)
 
 class SelectMultiple(BaseWidget):
     widget = widgets.SelectMultiple
+    identities = ['MultipleChoiceField']
 
 field_registry.register_widget('SelectMultiple', SelectMultiple)
 
-class RadioInput(BaseWidget):
-    widget = widgets.RadioInput
-
-field_registry.register_widget('RadioInput', RadioInput)
-
 class RadioSelect(BaseWidget):
     widget = widgets.RadioSelect
+    identities = ['ChoiceField']
 
 field_registry.register_widget('RadioSelect', RadioSelect)
 
 class CheckboxSelectMultiple(BaseWidget):
     widget = widgets.CheckboxSelectMultiple
+    identities = ['MultipleChoiceField']
 
 field_registry.register_widget('CheckboxSelectMultiple', CheckboxSelectMultiple)
 

@@ -13,19 +13,20 @@ class BaseField(object):
     field = None
     identities = list()
     form = BaseFieldForm
+    default_widget = 'TextInput'
     
     def create_field(self, data):
         return self.field(**data)
     
     def widget_choices(self):
         choices = list()
-        for widget in field_registry.widgets.itervalues():
+        for key, widget in field_registry.widgets.iteritems():
             if not widget.identities:
-                choices.append(widget)
+                choices.append((key, widget))
             else:
                 for identity in widget.identities:
                     if identity in self.identities:
-                        choices.append(widget)
+                        choices.append((key, widget))
                         break
         return choices
 
@@ -60,6 +61,17 @@ class ChoiceField(BaseField):
 
 field_registry.register_field('ChoiceField', ChoiceField)
 
+class MultipleChoiceField(BaseField):
+    form = ChoiceFieldForm
+    field = forms.MultipleChoiceField
+    identities = ['MultipleChoiceField']
+
+    def create_field(self, data):
+        data['choices'] = [row.split(',',1) for row in data['choices'].split('\n')]
+        return self.field(**data)
+
+field_registry.register_field('MultipleChoiceField', MultipleChoiceField)
+
 class DateField(BaseField):
     field = forms.DateField
     identities = ['DateField']
@@ -90,6 +102,12 @@ class EmailField(CharField):
     identities = ['EmailField']
 
 field_registry.register_field('EmailField', EmailField)
+
+class FileField(CharField):
+    field = forms.FileField
+    identities = ['FileField']
+
+field_registry.register_field('FileField', FileField)
 
 class FloatFieldForm(BaseFieldForm):
     max_value = forms.IntegerField(required=False)
