@@ -4,10 +4,20 @@ from django.forms import widgets
 from resource import field_registry
 
 class BaseFieldForm(forms.Form):
-    required = forms.BooleanField(default=True)
-    label = forms.CharField()
-    initial = forms.CharField()
-    help_text = forms.CharField()
+    widget = forms.ChoiceField(choices=[])
+    required = forms.BooleanField(default=True, required=False)
+    label = forms.CharField(required=False)
+    initial = forms.CharField(required=False)
+    help_text = forms.CharField(required=False)
+    
+    def __init__(self, field, *args, **kwargs):
+        super(BaseFieldForm, self).__init__(*args, **kwargs)
+        self.field = field
+        self.set_widget_choices(field)
+    
+    def set_widget_choices(self, field):
+        self.fields['widget'].choices = field.widget_choices()
+        self.fields['widget'].initial = field.default_widget
 
 class BaseField(object):
     field = None
@@ -29,6 +39,7 @@ class BaseField(object):
                         choices.append((key, widget))
                         break
         return choices
+    
 
 class BooleanField(BaseField):
     field = forms.BooleanField
