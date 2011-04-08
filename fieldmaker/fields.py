@@ -4,20 +4,10 @@ from django.forms import widgets
 from resource import field_registry
 
 class BaseFieldForm(forms.Form):
-    widget = forms.ChoiceField(choices=[])
-    required = forms.BooleanField(default=True, required=False)
+    required = forms.BooleanField(initial=True, required=False)
     label = forms.CharField(required=False)
     initial = forms.CharField(required=False)
     help_text = forms.CharField(required=False)
-    
-    def __init__(self, field, *args, **kwargs):
-        super(BaseFieldForm, self).__init__(*args, **kwargs)
-        self.field = field
-        self.set_widget_choices(field)
-    
-    def set_widget_choices(self, field):
-        self.fields['widget'].choices = field.widget_choices()
-        self.fields['widget'].initial = field.default_widget
 
 class BaseField(object):
     field = None
@@ -40,6 +30,12 @@ class BaseField(object):
                         break
         return choices
     
+    def render_example(self):
+        field = self.create_field({})
+        return field.render('name', 'value')
+    
+    def get_form(self):
+        return self.form
 
 class BooleanField(BaseField):
     field = forms.BooleanField
@@ -179,7 +175,7 @@ field_registry.register_field('TimeField', TimeField)
 class URLFieldForm(BaseFieldForm):
     max_length = forms.IntegerField(required=False)
     min_length = forms.IntegerField(required=False)
-    verify_exits = forms.BooleanField(default=False, required=False)
+    verify_exits = forms.BooleanField(initial=False, required=False)
     validator_user_agent = forms.CharField(required=False)
 
 class URLField(BaseField):

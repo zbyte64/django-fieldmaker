@@ -1,0 +1,4 @@
+#the format of this document is to follow pip's specification for a requirements file
+#run: pip install -r REQUIREMENTS
+Django
+

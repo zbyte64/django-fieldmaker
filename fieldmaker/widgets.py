@@ -13,6 +13,9 @@ class BaseWidget(object):
     
     def create_widget(self, data):
         return self.widget(**data)
+    
+    def get_form(self):
+        return self.form
 
 class TextInput(BaseWidget):
     widget = widgets.TextInput
@@ -65,7 +68,7 @@ class DateTimeInputWidgetForm(BaseWidgetForm):
     format = forms.CharField(required=False)
 
 class DateTimeInput(BaseWidget):
-    widget = widgets.DateTime
+    widget = widgets.DateTimeInput
     form = DateTimeInputWidgetForm
     identities = ['DateTimeField']
 
