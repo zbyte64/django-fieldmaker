@@ -4,7 +4,8 @@ from django.utils.datastructures import SortedDict
 from resource import field_registry
 
 class FormSpecification(object):
-    example = {'form_specification':'base.1',
+    version = 'base.1'
+    example = {'form_specification':version,
                'fields': [
                    {'name':'email',
                     'field':'EmailField',
@@ -37,5 +38,22 @@ class FormSpecification(object):
     
     def extend_form(self, form, data):
         form.fields.update(self.get_fields(data))
+    
+    def bound_field_form_set_to_data(self, formset):
+        data = {'form_specification':self.version,
+                'fields':list(),}
+        assert formset.is_valid()
+        for form in formset:
+            field = {'name':form.cleaned_data['name'],
+                     'field':form.cleaned_data['field'],
+                     'field_spec':form.field_form.cleaned_data,
+                     'widget':form.cleaned_data['widget'],
+                     'widget_spec':form.widget_form.cleaned_data,}
+            data['fields'].append(field)
+        return data
+    
+    def data_to_field_form_set_initial(self, data):
+        return data['fields']
 
-field_registry.register_form_specification('base.1', FormSpecification())
+field_registry.register_form_specification(FormSpecification.version, FormSpecification())
+

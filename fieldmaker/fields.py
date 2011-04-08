@@ -22,11 +22,11 @@ class BaseField(object):
         choices = list()
         for key, widget in field_registry.widgets.iteritems():
             if not widget.identities:
-                choices.append((key, widget))
+                choices.append((key, key))
             else:
                 for identity in widget.identities:
                     if identity in self.identities:
-                        choices.append((key, widget))
+                        choices.append((key, key))
                         break
         return choices
     

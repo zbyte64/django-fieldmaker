@@ -10,14 +10,36 @@ class FieldEntryForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super(FieldEntryForm, self).__init__(*args, **kwargs)
+        self.populate_field_choices()
+        self.populate_widget_choices()
         self.load_field_form()
         self.load_widget_form()
     
     def populate_field_choices(self):
-        self['field'].choices = field_registry.fields.items()
+        choices = field_registry.fields.keys()
+        self.fields['field'].choices = zip(choices, choices)
     
     def populate_widget_choices(self):
-        self['widget'].choices = field_registry.widgets.items()
+        choices = field_registry.widgets.keys()
+        self.fields['widget'].choices = zip(choices, choices)
+    
+    def clean_field(self):
+        value = self.cleaned_data.get('field')
+        if value:
+            try:
+                return field_registry.fields[value]
+            except KeyError:
+                raise forms.ValidationError('Invalid field selection')
+        return value
+    
+    def clean_widget(self):
+        value = self.cleaned_data.get('widget')
+        if value:
+            try:
+                return field_registry.widgets[value]
+            except KeyError:
+                raise forms.ValidationError('Invalid widget selection')
+        return value
     
     def get_active_field_value(self, field_name):
         if hasattr(self, 'cleaned_data'):
@@ -25,16 +47,24 @@ class FieldEntryForm(forms.Form):
         key = field_name
         if self.prefix:
             key = '%s-%s' % (self.prefix, key)
+        
+        value = mapping = None
+        if field_name == 'widget':
+            mapping = field_registry.widgets
+        elif field_name == 'field':
+            mapping = field_registry.fields
+        
         if self.data and key in self.data:
-            return self.data.get(key)
+            value = self.data.get(key)
         if self.initial:
-            return self.initial.get(field_name)
-        return None
+            value = self.initial.get(field_name)
+        if value and mapping:
+            value = mapping[value]
+        return value
     
     def create_field_form(self):
         field = self.get_active_field_value('field')
         if field is None: return
-        field = field()
         form_cls = field.get_form()
         if self.prefix:
             prefix = '%s-field' % self.prefix
@@ -44,18 +74,17 @@ class FieldEntryForm(forms.Form):
         self.fields['widget'].choices = field.widget_choices()
         self.fields['widget'].initial = field.default_widget
         
-        return form_cls(data=self.data, prefix=prefix)
+        return form_cls(data=self.data, prefix=prefix, initial=self.initial.get('field_spec'))
     
     def create_widget_form(self):
         field = self.get_active_field_value('widget')
         if field is None: return
-        field = field()
         form_cls = field.get_form()
         if self.prefix:
             prefix = '%s-widget' % self.prefix
         else:
             prefix = 'widget'
-        return form_cls(data=self.data, prefix=prefix)
+        return form_cls(data=self.data, prefix=prefix, initial=self.initial.get('widget_spec'))
     
     def load_field_form(self):
         self.field_form = self.create_field_form()
