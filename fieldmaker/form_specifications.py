@@ -43,12 +43,13 @@ class FormSpecification(object):
         data = {'form_specification':self.version,
                 'fields':list(),}
         assert formset.is_valid()
-        for form in formset:
-            field = {'name':form.cleaned_data['name'],
-                     'field':form.cleaned_data['field'],
-                     'field_spec':form.field_form.cleaned_data,
-                     'widget':form.cleaned_data['widget'],
-                     'widget_spec':form.widget_form.cleaned_data,}
+        for form_data in formset.cleaned_data:
+            if not form_data: continue
+            field = {'name':form_data['name'],
+                     'field':form_data['field'],
+                     'field_spec':form_data['field_spec'],
+                     'widget':form_data['widget'],
+                     'widget_spec':form_data['widget_spec'],}
             data['fields'].append(field)
         return data
     

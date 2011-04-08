@@ -21,6 +21,21 @@ class FormSpecificationTestCase(unittest.TestCase):
     def test_form_field_integration(self):
         spec = FormSpecification()
         initial = spec.data_to_field_form_set_initial(spec.example)
-        formset = FieldEntryFormSet(initial=initial)#, data=initial)
-        #self.assertTrue(formset.is_valid(), str(formset.errors))
+        formset = FieldEntryFormSet(initial=initial)
         #print formset
+        data = {'form-0-name':'email',
+                'form-0-field':'EmailField',
+                'form-0-field-max_length':'128',
+                'form-0-widget':'TextInput',
+                'form-TOTAL_FORMS':'2',
+                'form-INITIAL_FORMS':'1',
+                'form-MAX_NUM_FORMS':'5',}
+        formset = FieldEntryFormSet(data=data)
+        self.assertTrue(formset.is_valid(), str(formset.errors))
+        #print formset
+        data = spec.bound_field_form_set_to_data(formset)
+        
+        #test loading this data
+        fields = spec.get_fields(spec.example)
+        self.assertEqual(len(fields), 1)
+

@@ -97,8 +97,10 @@ class FieldEntryForm(forms.Form):
         self.load_widget_form()
         if self.field_form:
             self.field_form.is_valid()
+            self.cleaned_data['field_spec'] = self.field_form.cleaned_data
         if self.widget_form:
             self.widget_form.is_valid()
+            self.cleaned_data['widget_spec'] = self.widget_form.cleaned_data
         return self.cleaned_data
 
 FieldEntryFormSet = formset_factory(FieldEntryForm)
