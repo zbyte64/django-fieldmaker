@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.formsets import formset_factory
+from django.forms.formsets import formset_factory, BaseFormSet
 
 from resource import field_registry
 
@@ -23,27 +23,7 @@ class FieldEntryForm(forms.Form):
         choices = field_registry.widgets.keys()
         self.fields['widget'].choices = zip(choices, choices)
     
-    def clean_field(self):
-        value = self.cleaned_data.get('field')
-        if value:
-            try:
-                return field_registry.fields[value]
-            except KeyError:
-                raise forms.ValidationError('Invalid field selection')
-        return value
-    
-    def clean_widget(self):
-        value = self.cleaned_data.get('widget')
-        if value:
-            try:
-                return field_registry.widgets[value]
-            except KeyError:
-                raise forms.ValidationError('Invalid widget selection')
-        return value
-    
     def get_active_field_value(self, field_name):
-        if hasattr(self, 'cleaned_data'):
-            return self.cleaned_data[field_name]
         key = field_name
         if self.prefix:
             key = '%s-%s' % (self.prefix, key)
@@ -54,7 +34,9 @@ class FieldEntryForm(forms.Form):
         elif field_name == 'field':
             mapping = field_registry.fields
         
-        if self.data and key in self.data:
+        if hasattr(self, 'cleaned_data') and value in self.cleaned_data:
+            value = self.cleaned_data[field_name]
+        elif self.data and key in self.data:
             value = self.data.get(key)
         if self.initial:
             value = self.initial.get(field_name)
@@ -94,6 +76,7 @@ class FieldEntryForm(forms.Form):
     
     def clean(self):
         self.load_field_form()
+        
         self.load_widget_form()
         if self.field_form:
             self.field_form.is_valid()
@@ -103,5 +86,34 @@ class FieldEntryForm(forms.Form):
             self.cleaned_data['widget_spec'] = self.widget_form.cleaned_data
         return self.cleaned_data
 
-FieldEntryFormSet = formset_factory(FieldEntryForm)
+
+class BaseFieldEntryFormSet(BaseFormSet):
+    def __init__(self, *args, **kwargs):
+        self.instance = kwargs.pop('instance', None)
+        self.queryset = kwargs.pop('queryset', None)
+        kwargs.pop('save_as_new', None)
+        if self.instance:
+            form_spec = self.instance.get_form_specification()
+            initial = form_spec.data_to_field_form_set_initial(self.instance.get_data())
+            kwargs.setdefault('initial', initial)
+        super(BaseFieldEntryFormSet, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        form_spec = self.instance.get_form_specification()
+        data = form_spec.bound_field_form_set_to_data(self)
+        self.instance.set_data(data)
+        if commit:
+            self.instance.save()
+        
+        #TODO populate the following
+        #CONSIDER: django admin requires these attributes
+        self.new_objects = list()
+        self.changed_objects = list()
+        self.deleted_objects = list()
+    
+    def get_queryset(self, request=None):
+        #CONSIDER: django admin requires we return an iterable of model instances
+        return [self.instance for i in range(len(self.instance.get_fields()))]
+
+FieldEntryFormSet = formset_factory(FieldEntryForm, formset=BaseFieldEntryFormSet)
 

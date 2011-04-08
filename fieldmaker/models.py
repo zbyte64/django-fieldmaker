@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.utils import simplejson
 
 from resource import field_registry
 
@@ -24,8 +25,12 @@ class FormDefinition(models.Model):
         return self.name
     
     def get_data(self):
-        from django.utils import simplejson
-        return simplejson.dumps(self.data)
+        if not self.data:
+            return {}
+        return simplejson.loads(self.data)
+    
+    def set_data(self, data):
+        self.data = simplejson.dumps(data)
     
     def get_form_specification(self):
         return field_registry.form_specifications[self.form_specification]

@@ -54,7 +54,7 @@ class FormSpecification(object):
         return data
     
     def data_to_field_form_set_initial(self, data):
-        return data['fields']
+        return data.get('fields', [])
 
 field_registry.register_form_specification(FormSpecification.version, FormSpecification())
 
