@@ -40,10 +40,14 @@ class FormSpecification(object):
         form.fields.update(self.get_fields(data))
     
     def bound_field_form_set_to_data(self, formset):
+        #CONSIDER moving this to part of the form
         data = {'form_specification':self.version,
                 'fields':list(),}
         assert formset.is_valid()
-        for form_data in formset.cleaned_data:
+        for form in formset:
+            if formset._should_delete_form(form):
+                continue
+            form_data = form.cleaned_data
             if not form_data: continue
             field = {'name':form_data['name'],
                      'field':form_data['field'],

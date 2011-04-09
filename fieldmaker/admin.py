@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.contrib.admin.options import BaseModelAdmin
-from models import FormDefinition, GenericObjectStore
-from modelforms import FormDefinitionForm
+from django.forms.formsets import formset_factory
 
-from forms import FieldEntryFormSet
+from models import FormDefinition, GenericObjectStore
+from forms import FieldEntryForm, BaseFieldEntryFormSet
 
 class FieldEntryInlineAdmin(BaseModelAdmin):
     """
@@ -14,7 +14,7 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
     ``ForeignKey`` to its parent.
     """
     #formset = FieldEntryFormSet
-    extra = 3
+    extra = 1
     max_num = None
     template = 'admin/fieldmaker/fieldentry_stacked.html'
     verbose_name = None
@@ -46,7 +46,16 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
     media = property(_media)
 
     def get_formset(self, request, obj=None, **kwargs):
-        return FieldEntryFormSet
+        """Returns a BaseInlineFormSet class for use in admin add/change views."""
+        defaults = {
+            "form": FieldEntryForm,
+            "formset": BaseFieldEntryFormSet,
+            "extra": self.extra,
+            "max_num": self.max_num,
+            "can_delete": self.can_delete,
+        }
+        defaults.update(kwargs)
+        return formset_factory(**defaults)
 
     def get_fieldsets(self, request, obj=None):
         if self.declared_fieldsets:

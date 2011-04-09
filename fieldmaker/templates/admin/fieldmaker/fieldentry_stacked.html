@@ -15,16 +15,35 @@
   {% for fieldset in inline_admin_form %}
     {% include "admin/includes/fieldset.html" %}
   {% endfor %}
-{% comment %}
-  {% if inline_admin_form.has_auto_field %}{{ inline_admin_form.pk_field.field }}{% endif %}
-  {{ inline_admin_form.fk_field.field }}
-{% endcomment %}
 </div>{% endfor %}
+
+<div style="display:none" id="{{ inline_admin_formset.formset.prefix }}-group-field-defs">
+{% for key, form in inline_admin_formset.formset.field_forms.iteritems %}
+<table class="{{key}}">
+    {{form.as_table}}
+</table>
+{% endfor %}
+</div>
+
+<div style="display:none" id="{{ inline_admin_formset.formset.prefix }}-group-widget-defs">
+{% for key, form in inline_admin_formset.formset.widget_forms.iteritems %}
+<table class="{{key}}">
+    {{form.as_table}}
+</table>
+{% endfor %}
+</div>
 </div>
 
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
+        get_field_def = function(key) {
+            return $("#{{ inline_admin_formset.formset.prefix }}-group-field-defs > ."+key);
+        }
+        get_widget_def = function(key) {
+            return $("#{{ inline_admin_formset.formset.prefix }}-group-widget-defs > ."+key);
+        }
+        
         var rows = "#{{ inline_admin_formset.formset.prefix }}-group .inline-related";
         var updateInlineLabel = function(row) {
             $(rows).find(".inline_label").each(function(i) {
@@ -80,6 +99,41 @@
                 updateSelectFilter();
                 updateInlineLabel(row);
             })
+        });
+        
+        $(rows+' .field :input').live('change', function() {
+            var key = $(this).val();
+            if (!key) return;
+            
+            var prefix = $(this).attr('name').split('-');
+            prefix.pop();
+            prefix = prefix.join('-');
+            
+            var field_form = get_field_def(key).clone();
+            var field_spec = $(this).parents('fieldset:first').find('.field_spec table');
+            field_form.find(':input').each(function() {
+                var field_name = $(this).attr('name');
+                $(this).attr('name', field_name.replace(/prefix/, prefix));
+            });
+            field_spec.replaceWith(field_form);
+        });
+        $(rows+' .widget :input').live('change', function() {
+            var key = $(this).val();
+            console.log(key)
+            if (!key) return;
+            
+            var prefix = $(this).attr('name').split('-');
+            prefix.pop();
+            prefix = prefix.join('-');
+            
+            var field_form = get_widget_def(key).clone();
+            var field_spec = $(this).parents('fieldset:first').find('.widget_spec table');
+            console.log(field_spec)
+            field_form.find(':input').each(function() {
+                var field_name = $(this).attr('name');
+                $(this).attr('name', field_name.replace(/prefix/, prefix));
+            });
+            field_spec.replaceWith(field_form);
         });
     });
 })(django.jQuery);
