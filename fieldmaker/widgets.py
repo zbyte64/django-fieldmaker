@@ -4,7 +4,7 @@ from django.forms import widgets
 from resource import field_registry
 
 class BaseWidgetForm(forms.Form):
-    pass
+    classes = forms.CharField(required=False)
 
 class BaseWidget(object):
     form = BaseWidgetForm
@@ -12,6 +12,9 @@ class BaseWidget(object):
     identities = []
     
     def create_widget(self, data):
+        data.setdefault('attrs', {})
+        if 'classes' in data:
+            data['attrs']['class'] = data.pop('classes')
         return self.widget(**data)
     
     def get_form(self):
