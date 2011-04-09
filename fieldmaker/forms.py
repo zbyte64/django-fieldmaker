@@ -100,7 +100,7 @@ class BaseFieldEntryFormSet(BaseFormSet):
         self.instance = kwargs.pop('instance', None)
         self.queryset = kwargs.pop('queryset', None)
         kwargs.pop('save_as_new', None)
-        if self.instance:
+        if self.instance and self.instance.pk:
             form_spec = self.instance.get_form_specification()
             initial = form_spec.data_to_field_form_set_initial(self.instance.get_data())
             kwargs.setdefault('initial', initial)
@@ -121,7 +121,9 @@ class BaseFieldEntryFormSet(BaseFormSet):
     
     def get_queryset(self, request=None):
         #CONSIDER: django admin requires we return an iterable of model instances
-        return [self.instance for i in range(len(self.instance.get_fields()))]
+        if self.instance.pk:
+            return [self.instance for i in range(len(self.instance.get_fields()))]
+        return []
     
     def widget_forms(self): #helper function for displaying templated forms in admin
         forms = dict()

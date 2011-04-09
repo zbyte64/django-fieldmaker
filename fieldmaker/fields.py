@@ -8,6 +8,12 @@ class BaseFieldForm(forms.Form):
     label = forms.CharField(required=False)
     initial = forms.CharField(required=False)
     help_text = forms.CharField(required=False)
+    
+    def clean(self):
+        for key, value in self.cleaned_data.items():
+            if value == "":
+                del self.cleaned_data[key]
+        return self.cleaned_data
 
 class BaseField(object):
     field = None

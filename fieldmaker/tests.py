@@ -3,6 +3,8 @@ from django.utils import unittest
 from resource import field_registry
 from form_specifications import FormSpecification
 from forms import FieldEntryFormSet
+from modelforms import ExpandableModelForm
+from models import FormDefinition
 
 class FormSpecificationTestCase(unittest.TestCase):
     def test_create_form(self):
@@ -38,4 +40,16 @@ class FormSpecificationTestCase(unittest.TestCase):
         #test loading this data
         fields = spec.get_fields(spec.example)
         self.assertEqual(len(fields), 1)
+
+class ExpandableModelFormTestCase(unittest.TestCase):
+    def setUp(self):
+        class ExpandableFormDefinitionForm(ExpandableModelForm):
+            class Meta:
+                model = FormDefinition
+                form_key = 'test_expandable_form'
+        self.form_cls = ExpandableFormDefinitionForm
+    
+    def test_expandable_form(self):
+        self.form_cls()
+
 

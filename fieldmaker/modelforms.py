@@ -4,7 +4,7 @@ from models import FormDefinition, GenericObjectStore
 
 class ExpandableModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(GenericAttributeModelForm, self).__init__(*args, **kwargs)
+        super(ExpandableModelForm, self).__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
             fields = self.get_expanded_fields()
             data = self.get_expanded_data(self.instance)

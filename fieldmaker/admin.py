@@ -68,7 +68,7 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
 
 class FormDefinitionAdmin(admin.ModelAdmin):
     inlines = [FieldEntryInlineAdmin]
-    #exclude = ['data']
+    exclude = ['data']
     
     def get_urls(self):
         from django.conf.urls.defaults import patterns, url
