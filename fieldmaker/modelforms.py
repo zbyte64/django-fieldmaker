@@ -5,10 +5,10 @@ from models import FormDefinition, GenericObjectStore
 class ExpandableModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ExpandableModelForm, self).__init__(*args, **kwargs)
+        fields = self.get_expanded_fields()
+        self.fields.update(fields)
         if self.instance and self.instance.pk:
-            fields = self.get_expanded_fields()
             data = self.get_expanded_data(self.instance)
-            self.fields.update(fields)
             self.initial.update(data)
     
     def get_expanded_fields(self):
@@ -17,7 +17,7 @@ class ExpandableModelForm(forms.ModelForm):
             form_definition = FormDefinition.objects.get(key=form_key)
         except FormDefinition.DoesNotExist:
             return dict()
-        return form_defininition.get_fields()
+        return form_definition.get_fields()
     
     def get_expanded_data(self, instance):
         facet = getattr(self.Meta, 'facet', '')

@@ -1,4 +1,5 @@
 from django.utils import unittest
+from django.test import TestCase
 
 from resource import field_registry
 from form_specifications import FormSpecification
@@ -41,15 +42,22 @@ class FormSpecificationTestCase(unittest.TestCase):
         fields = spec.get_fields(spec.example)
         self.assertEqual(len(fields), 1)
 
-class ExpandableModelFormTestCase(unittest.TestCase):
+class ExpandableModelFormTestCase(TestCase):
+    fixtures = ['test_fieldmaker']
+    
     def setUp(self):
         class ExpandableFormDefinitionForm(ExpandableModelForm):
             class Meta:
                 model = FormDefinition
-                form_key = 'test_expandable_form'
+                form_key = 'test'
         self.form_cls = ExpandableFormDefinitionForm
     
     def test_expandable_form(self):
-        self.form_cls()
+        form = self.form_cls()
+        assert 'Field1' in form.fields
+        #TODO test saving to an instance
+        
+        instance = FormDefinition.objects.all()[0]
+        form = self.form_cls(instance=instance)
 
 
