@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.utils import simplejson
+from django.utils.functional import lazy
 
 from resource import field_registry
 
@@ -15,9 +16,13 @@ class GenericObjectStore(models.Model):
     class Meta:
         unique_together = [('facet', 'content_type', 'object_id')]
 
+def form_spec_choices():
+    choices = field_registry.form_specifications.keys()
+    return zip(choices, choices)
+
 class FormDefinition(models.Model):
     name = models.CharField(max_length=128)
-    form_specification = models.CharField(max_length=128)
+    form_specification = models.CharField(max_length=128, choices=lazy(form_spec_choices, list)())
     
     data = models.TextField()
     
