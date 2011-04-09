@@ -5,6 +5,12 @@ from resource import field_registry
 
 class BaseWidgetForm(forms.Form):
     classes = forms.CharField(required=False)
+    
+    def clean(self):
+        for key, value in self.cleaned_data.items():
+            if value == "":
+                del self.cleaned_data[key]
+        return self.cleaned_data
 
 class BaseWidget(object):
     form = BaseWidgetForm
@@ -12,9 +18,10 @@ class BaseWidget(object):
     identities = []
     
     def create_widget(self, data):
+        data = dict(data)
         data.setdefault('attrs', {})
         if 'classes' in data:
-            data['attrs']['class'] = data.pop('classes')
+            data['attrs'].setdefault('class', data.pop('classes'))
         return self.widget(**data)
     
     def get_form(self):
