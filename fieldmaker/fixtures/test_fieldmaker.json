@@ -1,0 +1,12 @@
+[
+    {
+        "pk": 1, 
+        "model": "fieldmaker.formdefinition", 
+        "fields": {
+            "data": "{\"fields\": [{\"field\": \"CharField\", \"widget\": \"Textarea\", \"field_spec\": {\"min_length\": null, \"required\": true, \"max_length\": null, \"help_text\": \"Helllo WOrld\"}, \"name\": \"Field1\", \"widget_spec\": {\"classes\": \"\"}}], \"form_specification\": \"base.1\"}", 
+            "form_specification": "base.1", 
+            "name": "test", 
+            "key": "test"
+        }
+    }
+]

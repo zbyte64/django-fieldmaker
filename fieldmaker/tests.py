@@ -5,7 +5,7 @@ from resource import field_registry
 from form_specifications import FormSpecification
 from forms import FieldEntryFormSet
 from modelforms import ExpandableModelForm
-from models import FormDefinition
+from models import FormDefinition, GenericObjectStore
 
 class FormSpecificationTestCase(unittest.TestCase):
     def test_create_form(self):
@@ -54,10 +54,18 @@ class ExpandableModelFormTestCase(TestCase):
     
     def test_expandable_form(self):
         form = self.form_cls()
-        assert 'Field1' in form.fields
-        #TODO test saving to an instance
+        self.assertTrue('Field1' in form.fields)
         
         instance = FormDefinition.objects.all()[0]
         form = self.form_cls(instance=instance)
+        data = form.initial
+        data['Field1'] = 'foo'
+        form = self.form_cls(instance=instance, data=data)
+        self.assertTrue(form.is_valid(), str(form.errors))
+        form.save()
+        
+        facet_data = GenericObjectStore.objects.lookup_facet(instance, '')
+        self.assertTrue('Field1' in facet_data)
+        
 
 
