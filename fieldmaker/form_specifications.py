@@ -45,7 +45,7 @@ class FormSpecification(object):
                 'fields':list(),}
         assert formset.is_valid()
         for form in formset:
-            if formset._should_delete_form(form):
+            if formset.can_delete and formset._should_delete_form(form):
                 continue
             form_data = form.cleaned_data
             if not form_data: continue
