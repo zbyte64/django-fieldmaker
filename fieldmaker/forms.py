@@ -56,7 +56,7 @@ class FieldEntryForm(forms.Form):
         else:
             prefix = 'field_spec'
         
-        self.fields['widget'].choices = field.widget_choices()
+        self.fields['widget'].choices = [('', 'Select Widget')] + field.widget_choices()
         self.fields['widget'].initial = field.default_widget
         return form_cls(data=self.data or None, prefix=prefix, initial=self.initial.get('field_spec'))
     

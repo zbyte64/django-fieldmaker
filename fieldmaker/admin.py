@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin.options import BaseModelAdmin
 from django.forms.formsets import formset_factory
+from django.template.response import TemplateResponse
+from django.utils.functional import update_wrapper
 
 from models import FormDefinition, GenericObjectStore
 from forms import FieldEntryForm, BaseFieldEntryFormSet
@@ -16,7 +18,7 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
     #formset = FieldEntryFormSet
     extra = 1
     max_num = None
-    template = 'admin/fieldmaker/fieldentry_stacked.html'
+    template = 'admin/fieldmaker/formdefinition/fieldentry_stacked.html'
     verbose_name = None
     verbose_name_plural = None
     can_delete = True
@@ -67,5 +69,31 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
 class FormDefinitionAdmin(admin.ModelAdmin):
     inlines = [FieldEntryInlineAdmin]
     #exclude = ['data']
+    
+    def get_urls(self):
+        from django.conf.urls.defaults import patterns, url
+        
+        def wrap(view):
+            def wrapper(*args, **kwargs):
+                return self.admin_site.admin_view(view)(*args, **kwargs)
+            return update_wrapper(wrapper, view)
+        
+        url_patterns = patterns('',
+            url(r'^(?P<object_id>[\d\w]+)/preview/$', wrap(self.preview_form), name='fieldmaker_formdefinition_preview'),
+        )
+        url_patterns += super(FormDefinitionAdmin, self).get_urls()
+        return url_patterns
+    
+    def preview_form(self, request, object_id):
+        instance = self.model.objects.get(pk=object_id)
+        form_cls = instance.get_form()
+        if request.POST:
+            form = form_cls(request.POST)
+            form.is_valid()
+        else:
+            form = form_cls()
+        return TemplateResponse(request, 'admin/fieldmaker/formdefinition/preview_form.html',
+                                {'instance':instance, 'form':form,},)
 
 admin.site.register(FormDefinition, FormDefinitionAdmin)
+
