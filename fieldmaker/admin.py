@@ -6,6 +6,19 @@ from django.utils.functional import update_wrapper
 
 from models import FormDefinition, GenericObjectStore
 from forms import FieldEntryForm, BaseFieldEntryFormSet
+from modelforms import ExpandableModelForm
+
+class ExpandableModelAdmin(admin.ModelAdmin):
+    form = ExpandableModelForm
+    
+    def get_fieldsets(self, request, obj=None):
+        "Hook for specifying fieldsets for the add form."
+        if self.declared_fieldsets:
+            return self.declared_fieldsets
+        form_cls = self.get_form(request, obj)
+        form = form_cls(instance=obj)
+        fields = form.fields.keys() + list(self.get_readonly_fields(request, obj))
+        return [(None, {'fields': fields})]
 
 class FieldEntryInlineAdmin(BaseModelAdmin):
     """
@@ -66,7 +79,7 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
         fields = form.base_fields.keys() + list(self.get_readonly_fields(request, obj))
         return [(None, {'fields': fields})]
 
-class FormDefinitionAdmin(admin.ModelAdmin):
+class FormDefinitionAdmin(ExpandableModelAdmin):
     inlines = [FieldEntryInlineAdmin]
     exclude = ['data']
     

@@ -12,7 +12,8 @@ class ExpandableModelForm(forms.ModelForm):
             self.initial.update(data)
     
     def get_expanded_fields(self):
-        form_key = getattr(self.Meta, 'form_key', '')
+        opts = self.Meta.model._meta
+        form_key = getattr(self.Meta, 'form_key', '%s_%s' % (opts.app_label, opts.module_name))
         try:
             form_definition = FormDefinition.objects.get(key=form_key)
         except FormDefinition.DoesNotExist:
@@ -50,4 +51,6 @@ class ExpandableModelForm(forms.ModelForm):
                 self._save_m2m()
             self.save_expanded_data(self.instance)
         return save_m2m
+    
+    save_m2m = property(_get_save_m2m, _set_save_m2m)
 
