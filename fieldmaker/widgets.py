@@ -2,6 +2,7 @@ from django import forms
 from django.forms import widgets
 
 from resource import field_registry
+import html5widgets
 
 class BaseWidgetForm(forms.Form):
     classes = forms.CharField(required=False)
@@ -15,6 +16,7 @@ class BaseWidgetForm(forms.Form):
 class BaseWidget(object):
     form = BaseWidgetForm
     widget = None
+    html5widget = None
     identities = []
     
     def create_widget(self, data):
@@ -22,7 +24,11 @@ class BaseWidget(object):
         data.setdefault('attrs', {})
         if 'classes' in data:
             data['attrs'].setdefault('class', data.pop('classes'))
-        return self.widget(**data)
+        html5 = self.html5widget and data.pop('html5', False)
+        if html5:
+            return self.html5widget(**data)
+        else:
+            return self.widget(**data)
     
     def get_form(self):
         return self.form
@@ -69,6 +75,7 @@ class DateInputWidgetForm(BaseWidgetForm):
 
 class DateInput(BaseWidget):
     widget = widgets.DateInput
+    html5widget = html5widgets.DateInput
     form = DateInputWidgetForm
     identities = ['DateField']
 
@@ -79,6 +86,7 @@ class DateTimeInputWidgetForm(BaseWidgetForm):
 
 class DateTimeInput(BaseWidget):
     widget = widgets.DateTimeInput
+    html5widget = html5widgets.DateTimeInput
     form = DateTimeInputWidgetForm
     identities = ['DateTimeField']
 
@@ -149,4 +157,37 @@ class SplitHiddenDateTimeWidget(BaseWidget):
     identities = ['DateTimeField']
 
 field_registry.register_widget('SplitHiddenDateTimeWidget', SplitHiddenDateTimeWidget)
+
+#HTML 5 WIDGETS#
+
+'''
+class DateInput(BaseWidget):
+    widget = html5widgets.DateInput
+    identities = []
+
+field_registry.register_widget('DateInput', DateInput)
+'''
+class EmailInput(BaseWidget):
+    widget = html5widgets.EmailInput
+    identities = ['EmailField']
+
+field_registry.register_widget('EmailInput', EmailInput)
+
+class NumberInput(BaseWidget):
+    widget = html5widgets.NumberInput
+    identities = ['DecimalField', 'FloatField', 'IntegerField']
+
+field_registry.register_widget('NumberInput', NumberInput)
+
+class TelephoneInput(BaseWidget):
+    widget = html5widgets.TelephoneInput
+    identities = ['CharField']
+
+field_registry.register_widget('TelephoneInput', TelephoneInput)
+
+class URLInput(BaseWidget):
+    widget = html5widgets.URLInput
+    identities = ['URLField']
+
+field_registry.register_widget('URLInput', URLInput)
 
