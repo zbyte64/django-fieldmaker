@@ -4,9 +4,9 @@ from django.forms.formsets import formset_factory
 from django.template.response import TemplateResponse
 from django.utils.functional import update_wrapper
 
-from models import FormDefinition, GenericObjectStore
+from fieldmaker.models import FormDefinition, GenericObjectStore
+from fieldmaker.forms import ExpandableModelForm
 from forms import FieldEntryForm, BaseFieldEntryFormSet
-from modelforms import ExpandableModelForm
 
 class ExpandableModelAdmin(admin.ModelAdmin):
     form = ExpandableModelForm

@@ -3,8 +3,8 @@ from django.test import TestCase
 
 from resource import field_registry
 from form_specifications import FormSpecification
-from forms import FieldEntryFormSet
-from modelforms import ExpandableModelForm
+from admin.forms import FieldEntryFormSet
+from forms import ExpandableModelForm
 from models import FormDefinition, GenericObjectStore
 
 class FormSpecificationTestCase(unittest.TestCase):
@@ -66,6 +66,4 @@ class ExpandableModelFormTestCase(TestCase):
         
         facet_data = GenericObjectStore.objects.lookup_facet(instance, '')
         self.assertTrue('Field1' in facet_data)
-        
-
 
