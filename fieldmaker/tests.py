@@ -1,11 +1,16 @@
 from django.utils import unittest
 from django.test import TestCase
+from django.db import models
 
 from resource import field_registry
 from form_specifications import FormSpecification
 from admin.forms import FieldEntryFormSet
 from forms import ExpandableModelForm
 from models import FormDefinition, GenericObjectStore
+from modelfields import FacetField
+
+class TestModel(models.Model):
+    attributes = FacetField()
 
 class FormSpecificationTestCase(unittest.TestCase):
     def test_create_form(self):
@@ -66,4 +71,18 @@ class ExpandableModelFormTestCase(TestCase):
         
         facet_data = GenericObjectStore.objects.lookup_facet(instance, '')
         self.assertTrue('Field1' in facet_data)
+
+class TestFacetField(unittest.TestCase):
+    def setUp(self):
+        self.object = TestModel()
+        self.object.save()
+    
+    def test_face_field(self):
+        self.assertEqual(len(self.object.attributes), 0)
+        self.object.attributes['foo'] = 'bar'
+        self.object.attributes['bar'] = 'bacon'
+        self.object.attributes.save()
+        
+        self.object = TestModel.objects.get(pk=self.object.pk)
+        self.assertEqual(len(self.object.attributes), 2)
 

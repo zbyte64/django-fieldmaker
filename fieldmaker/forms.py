@@ -17,8 +17,7 @@ class ExpandableFormMixin(object):
     def get_expanded_clean_data(self):
         cleaned_data = dict()
         for key in self.get_expanded_fields().iterkeys():
-            if key in self.cleaned_data:
-                cleaned_data[key] = self.cleaned_data[key]
+            cleaned_data[key] = self.cleaned_data.get(key, None)
         return cleaned_data
     
 class ExpandableForm(forms.Form):
