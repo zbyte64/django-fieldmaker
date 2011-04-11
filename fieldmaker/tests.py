@@ -1,6 +1,7 @@
 from django.utils import unittest
 from django.test import TestCase
 from django.db import models
+from django.core.files.base import ContentFile
 
 from resource import field_registry
 from form_specifications import FormSpecification
@@ -77,7 +78,7 @@ class TestFacetField(unittest.TestCase):
         self.object = TestModel()
         self.object.save()
     
-    def test_face_field(self):
+    def test_facet_field(self):
         self.assertEqual(len(self.object.attributes), 0)
         self.object.attributes['foo'] = 'bar'
         self.object.attributes['bar'] = 'bacon'
@@ -85,4 +86,21 @@ class TestFacetField(unittest.TestCase):
         
         self.object = TestModel.objects.get(pk=self.object.pk)
         self.assertEqual(len(self.object.attributes), 2)
+    
+    def test_facet_field_file_store(self):
+        cf = ContentFile('foo')
+        self.object.attributes['myfile'] = cf
+        self.object.attributes.save()
+        
+        self.object = TestModel.objects.get(pk=self.object.pk)
+        myfile = self.object.attributes['myfile']
+        self.assertEqual(myfile.read(), 'foo')
+        
+        self.object.attributes.save()
+        
+        cf = ContentFile('bar')
+        self.object.attributes['myfile'] = cf
+        self.object.attributes.save()
+        self.object.attributes.load()
+        self.assertEqual(self.object.attributes['myfile'].read(), 'bar')
 

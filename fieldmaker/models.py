@@ -1,10 +1,21 @@
+import uuid
+
 from django.db import models
+from django.core.files.base import File
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.utils import simplejson
 from django.utils.functional import lazy
 
 from resource import field_registry
+
+def generate_uuid():
+    return uuid.uuid4().hex
+
+class GenericFileStore(models.Model):
+    key = models.CharField(max_length=128, unique=True, default=generate_uuid)
+    name = models.CharField(max_length=255)
+    stored_file = models.FileField(upload_to='fieldmaker/filestore/')
 
 class GenericObjectStoreManager(models.Manager):
     def filter_for_instance(self, instance):
@@ -24,6 +35,7 @@ class GenericObjectStoreManager(models.Manager):
             stored_obj = self.filter_for_instance(instance).get(facet=facet)
         except self.model.DoesNotExist:
             stored_obj = self.model(content_object=instance, facet=facet)
+            stored_obj.save()
         stored_obj.set_data(data)
         stored_obj.save()
         return stored_obj
@@ -35,14 +47,67 @@ class GenericObjectStore(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     data = models.TextField()
     
+    file_store = models.ManyToManyField(GenericFileStore, blank=True)
+    
     objects = GenericObjectStoreManager()
     
     def get_data(self):
         if not self.data:
             return {}
-        return simplejson.loads(self.data)
+        data = simplejson.loads(self.data)
+        
+        def handle_list(alist):
+            for value in alist:
+                #TODO list of files?
+                if isinstance(value, dict):
+                    handle_dict(value)
+                elif isinstance(value, list):
+                    handle_list(value)
+        
+        def handle_dict(dictionary):
+            for key, value in dictionary.items():
+                if isinstance(value, basestring):
+                    if value.startswith('file://'):
+                        file_key = value[len('file://'):]
+                        dictionary[key] = self.file_store.get(key=file_key).stored_file
+                        dictionary[key].file_key = file_key
+                elif isinstance(value, list):
+                    handle_list(value)
+                elif isinstance(value, dict):
+                    handle_dict(value)
+        
+        handle_dict(data)
+        return data
     
     def set_data(self, data):
+        def handle_list(alist):
+            for value in alist:
+                #TODO list of files?
+                if isinstance(value, dict):
+                    handle_dict(value)
+                elif isinstance(value, list):
+                    handle_list(value)
+            return alist
+        
+        def handle_dict(dictionary):
+            dictionary = dict(dictionary)
+            for key, value in dictionary.items():
+                if isinstance(value, File):
+                    if hasattr(value, 'file_key'):
+                        dictionary[key] = 'file://%s' % value.file_key
+                    else:
+                        file_store = GenericFileStore()
+                        file_store.name = getattr(value, 'name', None) or file_store.key
+                        file_store.stored_file.save(file_store.name, value)
+                        self.file_store.add(file_store)
+                        dictionary[key] = 'file://%s' % file_store.key
+                elif isinstance(value, list):
+                    dictionary[key] = handle_list(value)
+                elif isinstance(value, dict):
+                    dictionary[key] = handle_dict(value)
+            return dictionary
+        #TODO cleanup dangling files from previous saves
+        data = handle_dict(data)
         self.data = simplejson.dumps(data)
     
     class Meta:

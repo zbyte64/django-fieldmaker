@@ -8,7 +8,7 @@ from fieldmaker.models import FormDefinition, GenericObjectStore
 from fieldmaker.forms import ExpandableModelForm
 from forms import FieldEntryForm, BaseFieldEntryFormSet
 
-class ExpandableModelAdmin(admin.ModelAdmin):
+class ExpandableModelAdminMixin(object):
     form = ExpandableModelForm
     
     def get_fieldsets(self, request, obj=None):
@@ -19,6 +19,9 @@ class ExpandableModelAdmin(admin.ModelAdmin):
         form = form_cls(instance=obj)
         fields = form.fields.keys() + list(self.get_readonly_fields(request, obj))
         return [(None, {'fields': fields})]
+
+class ExpandableModelAdmin(admin.ModelAdmin, ExpandableModelAdminMixin):
+    pass
 
 class FieldEntryInlineAdmin(BaseModelAdmin):
     """
