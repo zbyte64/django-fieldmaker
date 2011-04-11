@@ -133,6 +133,12 @@ class FloatField(BaseField):
 
 field_registry.register_field('FloatField', FloatField)
 
+class ImageField(BaseField):
+    field = forms.ImageField
+    identities = ['FileField', 'ImageField']
+
+field_registry.register_field('ImageField', ImageField)
+
 class IntegerFieldForm(BaseFieldForm):
     max_value = forms.IntegerField(required=False)
     min_value = forms.IntegerField(required=False)
