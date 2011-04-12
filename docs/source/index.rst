@@ -1,8 +1,6 @@
 Welcome to Django Fieldmaker's documentation!
 =======================================
 
-Use Cases:
-
 .. toctree::
    :glob:
    :maxdepth: 2
@@ -12,6 +10,8 @@ Use Cases:
    manual/expandableamin
    manual/extending
    
+
+Download: http://github.com/zbyte64/django-fieldmaker
 
 Indices and tables
 ==================
