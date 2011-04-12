@@ -25,10 +25,10 @@ class ExpandableModelAdminMixin(object):
                     continue
                 if 'fields' in dictionary:
                     expanded_fields = form.get_expanded_fields().keys()
-                    dictionary['fields'] = fields = list(dictionary['fields'])
+                    dictionary['fields'] = section_fields = list(dictionary['fields'])
                     for field in expanded_fields:
-                        if field not in fields:
-                            fields.append(field)
+                        if field not in section_fields:
+                            section_fields.append(field)
                     break
             return fields
         fields = form.fields.keys() + list(self.get_readonly_fields(request, obj))
