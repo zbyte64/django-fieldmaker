@@ -1,3 +1,5 @@
+import copy
+
 from django.contrib import admin
 from django.contrib.admin.options import BaseModelAdmin
 from django.forms.formsets import formset_factory
@@ -9,13 +11,26 @@ from forms import FieldEntryForm, BaseFieldEntryFormSet, ExpandableAdminModelFor
 
 class ExpandableModelAdminMixin(object):
     form = ExpandableAdminModelForm
+    expandable_fieldset = None
     
     def get_fieldsets(self, request, obj=None):
         "Hook for specifying fieldsets for the add form."
-        if self.declared_fieldsets:
-            return self.declared_fieldsets
         form_cls = self.get_form(request, obj)
         form = form_cls(instance=obj)
+        
+        if self.declared_fieldsets:
+            fields = copy.deepcopy(self.declared_fieldsets)
+            for section, dictionary in fields:
+                if section != self.expandable_fieldset:
+                    continue
+                if 'fields' in dictionary:
+                    expanded_fields = form.get_expanded_fields().keys()
+                    dictionary['fields'] = fields = list(dictionary['fields'])
+                    for field in expanded_fields:
+                        if field not in fields:
+                            fields.append(field)
+                    break
+            return fields
         fields = form.fields.keys() + list(self.get_readonly_fields(request, obj))
         return [(None, {'fields': fields})]
     
