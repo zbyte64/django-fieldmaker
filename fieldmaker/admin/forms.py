@@ -1,8 +1,37 @@
 from django import forms
 from django.forms.formsets import formset_factory, BaseFormSet
 
+from django.contrib.admin import widgets as admin_widgets
+from django.forms import widgets
+
 from fieldmaker.resource import field_registry
 from fieldmaker.spec_widget import FormWidget
+from fieldmaker.forms import ExpandableModelForm
+
+#TODO review better methods of polishing admin integration
+FORMWIDGET_FOR_FIELDMAKER_DEFAULTS = {
+    widgets.DateTimeInput: {
+        'form_class': forms.SplitDateTimeField,
+        'widget': admin_widgets.AdminSplitDateTime
+    },
+    widgets.DateInput:       {'widget': admin_widgets.AdminDateWidget},
+    widgets.TimeInput:       {'widget': admin_widgets.AdminTimeWidget},
+    widgets.Textarea:       {'widget': admin_widgets.AdminTextareaWidget},
+    #widgets.URLField:        {'widget': admin_widgets.AdminURLFieldWidget},
+    #models.IntegerField:    {'widget': admin_widgets.AdminIntegerFieldWidget},
+    widgets.TextInput:       {'widget': admin_widgets.AdminTextInputWidget},
+    widgets.FileInput:       {'widget': admin_widgets.AdminFileWidget},
+    widgets.ClearableFileInput:       {'widget': admin_widgets.AdminFileWidget},
+}
+
+class ExpandableAdminModelForm(ExpandableModelForm):
+    def get_expanded_fields(self):
+        fields = super(ExpandableAdminModelForm, self).get_expanded_fields()
+        for key, field in fields.iteritems():
+            widget_key = type(field.widget)
+            if widget_key in FORMWIDGET_FOR_FIELDMAKER_DEFAULTS:
+                field.widget = FORMWIDGET_FOR_FIELDMAKER_DEFAULTS[widget_key]['widget']()
+        return fields
 
 class FieldEntryForm(forms.Form):
     name = forms.CharField()

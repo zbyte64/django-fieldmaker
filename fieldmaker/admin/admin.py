@@ -5,11 +5,10 @@ from django.template.response import TemplateResponse
 from django.utils.functional import update_wrapper
 
 from fieldmaker.models import FormDefinition, GenericObjectStore
-from fieldmaker.forms import ExpandableModelForm
-from forms import FieldEntryForm, BaseFieldEntryFormSet
+from forms import FieldEntryForm, BaseFieldEntryFormSet, ExpandableAdminModelForm
 
 class ExpandableModelAdminMixin(object):
-    form = ExpandableModelForm
+    form = ExpandableAdminModelForm
     
     def get_fieldsets(self, request, obj=None):
         "Hook for specifying fieldsets for the add form."
@@ -19,8 +18,9 @@ class ExpandableModelAdminMixin(object):
         form = form_cls(instance=obj)
         fields = form.fields.keys() + list(self.get_readonly_fields(request, obj))
         return [(None, {'fields': fields})]
+    
 
-class ExpandableModelAdmin(admin.ModelAdmin, ExpandableModelAdminMixin):
+class ExpandableModelAdmin(ExpandableModelAdminMixin, admin.ModelAdmin):
     pass
 
 class FieldEntryInlineAdmin(BaseModelAdmin):

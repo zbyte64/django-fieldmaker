@@ -64,6 +64,11 @@ class FileInput(BaseWidget):
 
 field_registry.register_widget('FileInput', FileInput)
 
+class ClearableFileInput(FileInput):
+    widget = widgets.ClearableFileInput
+
+field_registry.register_widget('ClearableFileInput', ClearableFileInput)
+
 class Textarea(BaseWidget):
     widget = widgets.Textarea
     identities = ['CharField']
