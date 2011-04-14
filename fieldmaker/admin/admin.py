@@ -9,6 +9,23 @@ from django.utils.functional import update_wrapper
 from fieldmaker.models import FormDefinition, GenericObjectStore
 from forms import FieldEntryForm, BaseFieldEntryFormSet, ExpandableAdminModelForm
 
+def get_fieldsets(form, declared_fieldsets, expandable_fieldset, read_only_fields):
+    if declared_fieldsets:
+        fields = copy.deepcopy(declared_fieldsets)
+        for section, dictionary in fields:
+            if section != expandable_fieldset:
+                continue
+            if 'fields' in dictionary:
+                expanded_fields = form.get_expanded_fields().keys()
+                dictionary['fields'] = section_fields = list(dictionary['fields'])
+                for field in expanded_fields:
+                    if field not in section_fields:
+                        section_fields.append(field)
+                break
+        return fields
+    fields = form.fields.keys() + list(read_only_fields)
+    return [(None, {'fields': fields})]
+
 class ExpandableModelAdminMixin(object):
     form = ExpandableAdminModelForm
     expandable_fieldset = None
@@ -17,23 +34,20 @@ class ExpandableModelAdminMixin(object):
         "Hook for specifying fieldsets for the add form."
         form_cls = self.get_form(request, obj)
         form = form_cls(instance=obj)
-        
-        if self.declared_fieldsets:
-            fields = copy.deepcopy(self.declared_fieldsets)
-            for section, dictionary in fields:
-                if section != self.expandable_fieldset:
-                    continue
-                if 'fields' in dictionary:
-                    expanded_fields = form.get_expanded_fields().keys()
-                    dictionary['fields'] = section_fields = list(dictionary['fields'])
-                    for field in expanded_fields:
-                        if field not in section_fields:
-                            section_fields.append(field)
-                    break
-            return fields
-        fields = form.fields.keys() + list(self.get_readonly_fields(request, obj))
-        return [(None, {'fields': fields})]
+        return get_fieldsets(form, self.declared_fieldsets, self.expandable_fieldset, self.get_readonly_fields(request, obj))
+
+class ExpandableInlineAdminMixin(object):
+    form = ExpandableAdminModelForm
+    expandable_fieldset = None
     
+    def get_fieldsets(self, request, obj=None):
+        "Hook for specifying fieldsets for the add form."
+        class form_cls(self.form):
+            class Meta:
+                model = self.model
+        form = form_cls(instance=obj)
+        
+        return get_fieldsets(form, self.declared_fieldsets, self.expandable_fieldset, self.get_readonly_fields(request, obj))
 
 class ExpandableModelAdmin(ExpandableModelAdminMixin, admin.ModelAdmin):
     pass

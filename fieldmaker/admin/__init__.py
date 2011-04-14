@@ -1,1 +1,1 @@
-from admin import ExpandableModelAdmin, ExpandableModelAdminMixin
+from admin import ExpandableModelAdmin, ExpandableModelAdminMixin, ExpandableInlineAdminMixin
