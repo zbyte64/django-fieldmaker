@@ -34,7 +34,7 @@ class ExpandableAdminModelForm(ExpandableModelForm):
         return fields
 
 class FieldEntryForm(forms.Form):
-    name = forms.CharField()
+    name = forms.SlugField()
     field = forms.ChoiceField(choices=[])
     field_spec = forms.CharField(required=False, widget=FormWidget)
     widget = forms.ChoiceField(choices=[])
