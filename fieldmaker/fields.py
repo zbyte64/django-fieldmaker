@@ -11,7 +11,7 @@ class BaseFieldForm(forms.Form):
     
     def clean(self):
         for key, value in self.cleaned_data.items():
-            if value == "":
+            if value in ("", None):
                 del self.cleaned_data[key]
         return self.cleaned_data
 
@@ -116,7 +116,7 @@ class EmailField(CharField):
 
 field_registry.register_field('EmailField', EmailField)
 
-class FileField(CharField):
+class FileField(BaseField):
     field = forms.FileField
     identities = ['FileField']
 

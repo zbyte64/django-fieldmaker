@@ -9,7 +9,7 @@ class BaseWidgetForm(forms.Form):
     
     def clean(self):
         for key, value in self.cleaned_data.items():
-            if value == "":
+            if value in ("", None):
                 del self.cleaned_data[key]
         return self.cleaned_data
 
