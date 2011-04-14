@@ -119,7 +119,6 @@
         });
         $(rows+' .widget :input').live('change', function() {
             var key = $(this).val();
-            console.log(key)
             if (!key) return;
             
             var prefix = $(this).attr('name').split('-');
@@ -128,7 +127,6 @@
             
             var field_form = get_widget_def(key).clone();
             var field_spec = $(this).parents('fieldset:first').find('.widget_spec table');
-            console.log(field_spec)
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
                 $(this).attr('name', field_name.replace(/prefix/, prefix));
