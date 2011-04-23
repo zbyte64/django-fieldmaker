@@ -21,8 +21,8 @@ class BaseWidget(object):
     
     def create_widget(self, data):
         data = dict(data)
-        data.setdefault('attrs', {})
         if 'classes' in data:
+            data.setdefault('attrs', {})
             data['attrs'].setdefault('class', data.pop('classes'))
         html5 = self.html5widget and data.pop('html5', False)
         if html5:

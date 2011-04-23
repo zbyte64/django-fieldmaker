@@ -80,6 +80,8 @@ class GenericObjectStore(models.Model):
         return data
     
     def set_data(self, data):
+        seen_files = set()
+        
         def handle_list(alist):
             for value in alist:
                 #TODO list of files?
@@ -95,20 +97,29 @@ class GenericObjectStore(models.Model):
                 if isinstance(value, File):
                     if hasattr(value, 'file_key'):
                         dictionary[key] = 'file://%s' % value.file_key
+                        seen_files.add(value.file_key)
                     else:
                         file_store = GenericFileStore()
                         file_store.name = getattr(value, 'name', None) or file_store.key
                         file_store.stored_file.save(file_store.name, value)
                         self.file_store.add(file_store)
                         dictionary[key] = 'file://%s' % file_store.key
+                        seen_files.add(file_store.key)
                 elif isinstance(value, list):
                     dictionary[key] = handle_list(value)
                 elif isinstance(value, dict):
                     dictionary[key] = handle_dict(value)
             return dictionary
         #TODO cleanup dangling files from previous saves
+        #stale_files = self.file_store.exclude(key__in=seen_files)
         data = handle_dict(data)
         self.data = simplejson.dumps(data)
+    
+    def get_facet_definition(self):
+        try:
+            return FacetDefinition.objects.get(content_type=self.content_type, facet=self.facet)
+        except FacetDefinition.DoesNotExist:
+            return None
     
     class Meta:
         unique_together = [('facet', 'content_type', 'object_id')]
@@ -148,4 +159,12 @@ class FormDefinition(models.Model):
         form_spec = self.get_form_specification()
         data = self.get_data()
         return form_spec.get_fields(data)
+
+class FacetDefinition(models.Model):
+    form_defintion = models.ForeignKey(FormDefinition)
+    facet = models.CharField(max_length=128, blank=True)
+    content_type = models.ForeignKey(ContentType)
+    
+    class Meta:
+        unique_together = ['facet', 'content_type']
 
