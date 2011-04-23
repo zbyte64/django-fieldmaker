@@ -7,9 +7,10 @@ Welcome to Django Fieldmaker's documentation!
 
    manual/installation
    manual/expandableforms
-   manual/expandableamin
+   manual/expandableadmin
+   manual/facetfield
    manual/extending
-   
+   manual/contrib
 
 Download: http://github.com/zbyte64/django-fieldmaker
 
