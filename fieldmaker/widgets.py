@@ -2,6 +2,7 @@ from django import forms
 from django.forms import widgets
 
 from resource import field_registry
+from utils import prep_for_kwargs
 import html5widgets
 
 class BaseWidgetForm(forms.Form):
@@ -26,9 +27,9 @@ class BaseWidget(object):
             data['attrs'].setdefault('class', data.pop('classes'))
         html5 = self.html5widget and data.pop('html5', False)
         if html5:
-            return self.html5widget(**data)
+            return self.html5widget(**prep_for_kwargs(data))
         else:
-            return self.widget(**data)
+            return self.widget(**prep_for_kwargs(data))
     
     def get_form(self):
         return self.form

@@ -2,6 +2,7 @@ from django import forms
 from django.forms import widgets
 
 from resource import field_registry
+from utils import prep_for_kwargs
 
 class BaseFieldForm(forms.Form):
     required = forms.BooleanField(initial=True, required=False)
@@ -22,7 +23,7 @@ class BaseField(object):
     default_widget = 'TextInput'
     
     def create_field(self, data):
-        return self.field(**data)
+        return self.field(**prep_for_kwargs(data))
     
     def widget_choices(self):
         choices = list()
