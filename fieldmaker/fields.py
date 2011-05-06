@@ -188,7 +188,7 @@ field_registry.register_field('TimeField', TimeField)
 class URLFieldForm(BaseFieldForm):
     max_length = forms.IntegerField(required=False)
     min_length = forms.IntegerField(required=False)
-    verify_exits = forms.BooleanField(initial=False, required=False)
+    verify_exists = forms.BooleanField(initial=False, required=False)
     validator_user_agent = forms.CharField(required=False)
 
 class URLField(BaseField):
