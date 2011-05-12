@@ -76,8 +76,14 @@ class ListFormField(FormField):
         formset = formset_factory(self.form_cls) #TODO allow for configuration
         return formset(data=form.data or None, prefix=prefix, initial=form.initial.get(name))
 
-def post_form_init(form):
-    for name, field in form.fields.iteritems():
-        if hasattr(field, 'post_form_init'):
-            field.post_form_init(name, form)
+class MetaFormMixin(object):
+    def post_form_init(self):
+        for name, field in self.fields.iteritems():
+            if hasattr(field, 'post_form_init'):
+                field.post_form_init(name, self)
+
+class MetaForm(forms.Form, MetaFormMixin):
+    def __init__(self, *args, **kwargs):
+        forms.Form.__init__(self, *args, **kwargs)
+        self.post_form_init()
 

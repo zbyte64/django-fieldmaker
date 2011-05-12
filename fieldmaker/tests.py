@@ -10,7 +10,7 @@ from admin.forms import FieldEntryFormSet
 from forms import ExpandableModelForm
 from models import FormDefinition, GenericObjectStore
 from modelfields import FacetField
-from spec_widget import FormField, ListFormField, post_form_init
+from spec_widget import FormField, ListFormField, MetaForm
 
 class TestModel(models.Model):
     attributes = FacetField()
@@ -112,23 +112,20 @@ class TestMetaFields(unittest.TestCase):
             first_name = forms.CharField()
             last_name = forms.CharField()
         
-        class MetaForm(forms.Form):
+        class PeopleForm(MetaForm):
             person_one = FormField(form=PersonForm)
             person_two = FormField(form=PersonForm)
         
-        form = MetaForm()
-        post_form_init(form)
+        form = PeopleForm()
         form_html = unicode(form)
         self.assertTrue('id_person_one-last_name' in form_html)
         
-        form = MetaForm(data={})
-        post_form_init(form)
+        form = PeopleForm(data={})
         self.assertFalse(form.is_valid())
         
         initial = {'person_one': {'first_name':'John', 'last_name':'Smith'},
                    'person_two': {'first_name':'Jane', 'last_name':'Doe'},}
-        form = MetaForm(initial=initial)
-        post_form_init(form)
+        form = PeopleForm(initial=initial)
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
         
@@ -136,8 +133,7 @@ class TestMetaFields(unittest.TestCase):
                 'person_one-last_name':'Smith',
                 'person_two-first_name':'Jane',
                 'person_two-last_name':'Doe',}
-        form = MetaForm(initial=initial, data=data)
-        post_form_init(form)
+        form = PeopleForm(initial=initial, data=data)
         self.assertTrue(form.is_valid())
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
@@ -147,24 +143,21 @@ class TestMetaFields(unittest.TestCase):
             first_name = forms.CharField()
             last_name = forms.CharField()
         
-        class GroupForm(forms.Form):
+        class GroupForm(MetaForm):
             group_name = forms.CharField()
             people = ListFormField(form=PersonForm)
         
         form = GroupForm()
-        post_form_init(form)
         form_html = unicode(form)
         self.assertTrue('id_people-0-first_name' in form_html)
         
         form = GroupForm(data={})
-        post_form_init(form)
         self.assertFalse(form.is_valid())
         
         initial = {'group_name': 'anonymous',
                    'people': [{'first_name':'John', 'last_name':'Smith'},
                               {'first_name':'Jane', 'last_name':'Doe'}],}
         form = GroupForm(initial=initial)
-        post_form_init(form)
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
         
@@ -176,7 +169,6 @@ class TestMetaFields(unittest.TestCase):
                 'people-1-first_name':'Jane',
                 'people-1-last_name':'Doe',}
         form = GroupForm(initial=initial, data=data)
-        post_form_init(form)
         self.assertTrue(form.is_valid())
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
