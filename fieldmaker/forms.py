@@ -1,8 +1,9 @@
 from django import forms
 
 from models import FormDefinition, GenericObjectStore
+from spec_widget import MetaFormMixin
 
-class ExpandableFormMixin(object):
+class ExpandableFormMixin(MetaFormMixin):
     def install_expanded_fields(self):
         fields = self.get_expanded_fields()
         self.fields.update(fields)
@@ -20,10 +21,11 @@ class ExpandableFormMixin(object):
             cleaned_data[key] = self.cleaned_data.get(key, None)
         return cleaned_data
     
-class ExpandableForm(forms.Form):
+class ExpandableForm(forms.Form, ExpandableFormMixin):
     def __init__(self, *args, **kwargs):
         super(ExpandableForm, self).__init__(*args, **kwargs)
         self.install_expanded_fields()
+        self.post_form_init()
     
     @property
     def expanded_form_key(self):
@@ -36,6 +38,7 @@ class ExpandableModelForm(forms.ModelForm, ExpandableFormMixin):
         if self.instance and self.instance.pk:
             data = self.get_expanded_data(self.instance)
             self.initial.update(data)
+        self.post_form_init()
     
     @property
     def expanded_form_key(self):

@@ -5,8 +5,9 @@ from django.contrib.admin import widgets as admin_widgets
 from django.forms import widgets
 
 from fieldmaker.resource import field_registry
-from fieldmaker.spec_widget import FormWidget
+from fieldmaker.spec_widget import FormWidget, MetaForm, MetaFormMixin, FormField, ListFormField
 from fieldmaker.forms import ExpandableModelForm
+from fieldmaker.models import FormDefinition
 
 #TODO review better methods of polishing admin integration
 FORMWIDGET_FOR_FIELDMAKER_DEFAULTS = {
@@ -123,6 +124,22 @@ class FieldEntryForm(forms.Form):
                 raise forms.ValidationError('Please fix your widget')
         return self.cleaned_data
 
+class AdminFormDefinitionForm(forms.ModelForm, MetaFormMixin):
+    data = ListFormField(form=FieldEntryForm)
+    
+    def __init__(self, *args, **kwargs):
+        forms.ModelForm.__init__(self, *args, **kwargs)
+        if self.instance:
+            self.initial['data'] = self.instance.get_data()
+        self.post_form_init()
+    
+    def save(self, *args, **kwargs):
+        instance = forms.ModelForm.save(self, *args, **kwargs)
+        instance.set_data(self.cleaned_data['data'])
+        return instance
+    
+    class Meta:
+        model = FormDefinition
 
 class BaseFieldEntryFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):

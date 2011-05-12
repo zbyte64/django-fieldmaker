@@ -4,11 +4,39 @@ from django.forms.formsets import formset_factory
 from django.utils.safestring import mark_safe
 from django.forms.util import flatatt
 
+def compare_dict(data1, data2):
+    if set(data1.iterkeys()) != set(data2.iterkeys()):
+        return False
+    for key, value1 in data1.iteritems():
+        value2 = data2.get(key)
+        if isinstance(value1, list):
+            if not compare_list(value1, value2):
+                return False
+        elif isinstance(value1, dict):
+            if not compare_dict(value1, value2):
+                return False
+        elif value1 != value2:
+            return False
+    return True
+
+def compare_list(data1, data2):
+    if len(data1) != len(data2):
+        return False
+    for value1, value2 in zip(data1, data2):
+        if isinstance(value1, list):
+            if not compare_list(value1, value2):
+                return False
+        elif isinstance(value1, dict):
+            if not compare_dict(value1, value2):
+                return False
+        elif value1 != value2:
+            return False
+    return True
+
 class FormWidget(widgets.Widget):
     def __init__(self, *args, **kwargs):
         form = kwargs.pop('form', None)
-        if form:
-            self.set_form(form)
+        self.set_form(form)
         super(FormWidget, self).__init__(*args, **kwargs)
     
     def set_form(self, form):
@@ -37,6 +65,19 @@ class FormWidget(widgets.Widget):
     def _has_changed(self, initial_value, data_value):
         if not initial_value and not data_value:
             return False
+        if self.form:
+            cleaned_data = self.form.cleaned_data
+            if isinstance(cleaned_data, list):
+                data_value = list()
+                for entry in cleaned_data:
+                    if entry:
+                        data_value.append(entry)
+            else:
+                data_value = cleaned_data
+        if isinstance(data_value, dict):
+            return not compare_dict(initial_value, data_value)
+        if isinstance(data_value, list):
+            return not compare_list(initial_value, data_value)
         return super(FormWidget, self)._has_changed(initial_value, data_value)
 
 class FormField(forms.Field):
@@ -65,8 +106,16 @@ class FormField(forms.Field):
         return value
 
 class ListFormWidget(FormWidget):
-    pass
-    #TODO provide media to allow for dynamic adding
+    def render(self, name, node, attrs=None):
+        if not attrs:
+            attrs = {}
+        final_attrs = self.build_attrs(attrs)
+        if self.form:
+            parts = list()
+            for form in self.form.forms:
+                parts.append(u'<tr><td><table class="module">%s</table></td></tr>' % form.as_table())
+            return mark_safe(u'%s<table%s> %s</table>' % (self.form.management_form.as_table(), flatatt(final_attrs), u'\n'.join(parts)))
+        return mark_safe(u'<table%s>&nbsp;</table>' % flatatt(final_attrs))
 
 class ListFormField(FormField):
     widget = ListFormWidget
@@ -75,6 +124,16 @@ class ListFormField(FormField):
         prefix = form.add_prefix(name)
         formset = formset_factory(self.form_cls) #TODO allow for configuration
         return formset(data=form.data or None, prefix=prefix, initial=form.initial.get(name))
+    
+    def clean(self, value):
+        value = super(ListFormField, self).clean(value)
+        if isinstance(value, list):
+            new_list = list()
+            for entry in value:
+                if entry:
+                    new_list.append(entry)
+            return new_list
+        return value
 
 class MetaFormMixin(object):
     def post_form_init(self):

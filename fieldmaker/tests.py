@@ -6,7 +6,6 @@ from django.core.files.base import ContentFile
 
 from resource import field_registry
 from form_specifications import FormSpecification
-from admin.forms import FieldEntryFormSet
 from forms import ExpandableModelForm
 from models import FormDefinition, GenericObjectStore
 from modelfields import FacetField
@@ -19,36 +18,15 @@ class FormSpecificationTestCase(unittest.TestCase):
     def test_create_form(self):
         spec = FormSpecification()
         form_cls = spec.create_form(spec.example)
-        self.assertEqual(len(form_cls.base_fields), len(spec.example['fields']))
+        self.assertEqual(len(form_cls.base_fields), len(spec.example))
         form = form_cls()
-        self.assertEqual(len(form.fields), len(spec.example['fields']))
+        self.assertEqual(len(form.fields), len(spec.example))
         assert 'email' in form.fields
     
     def test_get_fields(self):
         spec = FormSpecification()
         fields = spec.get_fields(spec.example)
-        self.assertEqual(len(fields), len(spec.example['fields']))
-    
-    def test_form_field_integration(self):
-        spec = FormSpecification()
-        initial = spec.data_to_field_form_set_initial(spec.example)
-        formset = FieldEntryFormSet(initial=initial)
-        #print formset
-        data = {'form-0-name':'email',
-                'form-0-field':'EmailField',
-                'form-0-field-max_length':'128',
-                'form-0-widget':'TextInput',
-                'form-TOTAL_FORMS':'2',
-                'form-INITIAL_FORMS':'1',
-                'form-MAX_NUM_FORMS':'5',}
-        formset = FieldEntryFormSet(data=data)
-        self.assertTrue(formset.is_valid(), str(formset.errors))
-        #print formset
-        data = spec.bound_field_form_set_to_data(formset)
-        
-        #test loading this data
-        fields = spec.get_fields(spec.example)
-        self.assertEqual(len(fields), 1)
+        self.assertEqual(len(fields), len(spec.example))
 
 class ExpandableModelFormTestCase(TestCase):
     fixtures = ['test_fieldmaker']
@@ -157,7 +135,7 @@ class TestMetaFields(unittest.TestCase):
         
         initial = {'group_name': 'anonymous',
                    'people': [{'first_name':'John', 'last_name':'Smith'},
-                              {'first_name':'Jane', 'last_name':'Doe'}],}
+                              {'first_name':'Jane', 'last_name':'Doe'},],}
         form = GroupForm(initial=initial)
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
@@ -167,12 +145,29 @@ class TestMetaFields(unittest.TestCase):
                 'people-INITIAL_FORMS': '2',
                 'people-0-first_name':'John',
                 'people-0-last_name':'Smith',
-                'people-1-first_name':'Jane',
-                'people-1-last_name':'Doe',}
+                'people-1-first_name':'Jeniffer',
+                'people-1-last_name':'Dane',
+                'people-2-first_name':'',
+                'people-2-last_name':'',}
         form = GroupForm(initial=initial, data=data)
         self.assertTrue(form.is_valid())
+        self.assertTrue('people' in form.changed_data)
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
+        #print form_html
         #self.assertEqual(len(form.cleaned_data['people']), 2) #TODO don't return empty results
+        
+        data = {'group_name': 'anonymous',
+                'people-TOTAL_FORMS': '3',
+                'people-INITIAL_FORMS': '2',
+                'people-0-first_name':'John',
+                'people-0-last_name':'Smith',
+                'people-1-first_name':'Jane',
+                'people-1-last_name':'Doe',
+                'people-2-first_name':'',
+                'people-2-last_name':'',}
+        form = GroupForm(initial=initial, data=data)
+        self.assertTrue(form.is_valid())
+        self.assertFalse(form.changed_data)
 
 

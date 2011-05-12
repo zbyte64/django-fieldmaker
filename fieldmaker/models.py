@@ -141,8 +141,17 @@ class FormDefinition(models.Model):
     
     def get_data(self):
         if not self.data:
-            return {}
-        return simplejson.loads(self.data)
+            return []
+        data = simplejson.loads(self.data)
+        if isinstance(data, dict) and 'fields' in data:
+            data = data['fields']
+        if isinstance(data, list):
+            new_data = list()
+            for entry in data:
+                if entry:
+                    new_data.append(entry)
+            data = new_data
+        return data
     
     def set_data(self, data):
         self.data = simplejson.dumps(data)

@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.utils.functional import update_wrapper
 
 from fieldmaker.models import FormDefinition, GenericObjectStore
-from forms import FieldEntryForm, BaseFieldEntryFormSet, ExpandableAdminModelForm
+from forms import FieldEntryForm, BaseFieldEntryFormSet, ExpandableAdminModelForm, AdminFormDefinitionForm
 
 def get_fieldsets(form, declared_fieldsets, expandable_fieldset, read_only_fields):
     if declared_fieldsets:
@@ -112,8 +112,9 @@ class FieldEntryInlineAdmin(BaseModelAdmin):
         return [(None, {'fields': fields})]
 
 class FormDefinitionAdmin(ExpandableModelAdmin):
-    inlines = [FieldEntryInlineAdmin]
-    exclude = ['data']
+    #inlines = [FieldEntryInlineAdmin]
+    #exclude = ['data']
+    form = AdminFormDefinitionForm
     
     def get_urls(self):
         from django.conf.urls.defaults import patterns, url
