@@ -7,7 +7,7 @@ django-fieldmaker - Form Creator for Django
 Introduction
 ============
 
-This package enables you to design forms in the Django admin. Other libraries may register new fields or widgets for the designer to use.
+This package enables you to design forms in the Django admin. These forms can be used in your code or to extend existing forms in the admin itself. Other libraries may register new fields or widgets for the designer to use.
 
 
 To use you first have to add ``fieldmaker`` to ``INSTALLED_APPS``, and then

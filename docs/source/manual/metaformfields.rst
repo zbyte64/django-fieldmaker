@@ -5,6 +5,8 @@ Meta Form Fields
 FormField
 ---------
 
+.. autoclass:: fieldmaker.spec_widget.FormField
+
 ``FormField`` is a django field that allows you to embed a form as a field. To work properly, the form must inherit from ``MetaForm`` (or use the MetaFormMixin).
 
 Example usage::
