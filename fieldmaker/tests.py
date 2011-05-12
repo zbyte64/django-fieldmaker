@@ -1,5 +1,6 @@
 from django.utils import unittest
 from django.test import TestCase
+from django import forms
 from django.db import models
 from django.core.files.base import ContentFile
 
@@ -9,6 +10,7 @@ from admin.forms import FieldEntryFormSet
 from forms import ExpandableModelForm
 from models import FormDefinition, GenericObjectStore
 from modelfields import FacetField
+from spec_widget import FormField, ListFormField, post_form_init
 
 class TestModel(models.Model):
     attributes = FacetField()
@@ -103,4 +105,80 @@ class TestFacetField(unittest.TestCase):
         self.object.attributes.save()
         self.object.attributes.load()
         self.assertEqual(self.object.attributes['myfile'].read(), 'bar')
+
+class TestMetaFields(unittest.TestCase):
+    def test_form_field(self):
+        class PersonForm(forms.Form):
+            first_name = forms.CharField()
+            last_name = forms.CharField()
+        
+        class MetaForm(forms.Form):
+            person_one = FormField(form=PersonForm)
+            person_two = FormField(form=PersonForm)
+        
+        form = MetaForm()
+        post_form_init(form)
+        form_html = unicode(form)
+        self.assertTrue('id_person_one-last_name' in form_html)
+        
+        form = MetaForm(data={})
+        post_form_init(form)
+        self.assertFalse(form.is_valid())
+        
+        initial = {'person_one': {'first_name':'John', 'last_name':'Smith'},
+                   'person_two': {'first_name':'Jane', 'last_name':'Doe'},}
+        form = MetaForm(initial=initial)
+        post_form_init(form)
+        form_html = unicode(form)
+        self.assertTrue('value="John"' in form_html)
+        
+        data = {'person_one-first_name':'John',
+                'person_one-last_name':'Smith',
+                'person_two-first_name':'Jane',
+                'person_two-last_name':'Doe',}
+        form = MetaForm(initial=initial, data=data)
+        post_form_init(form)
+        self.assertTrue(form.is_valid())
+        form_html = unicode(form)
+        self.assertTrue('value="John"' in form_html)
+    
+    def test_list_form_field(self):
+        class PersonForm(forms.Form):
+            first_name = forms.CharField()
+            last_name = forms.CharField()
+        
+        class GroupForm(forms.Form):
+            group_name = forms.CharField()
+            people = ListFormField(form=PersonForm)
+        
+        form = GroupForm()
+        post_form_init(form)
+        form_html = unicode(form)
+        self.assertTrue('id_people-0-first_name' in form_html)
+        
+        form = GroupForm(data={})
+        post_form_init(form)
+        self.assertFalse(form.is_valid())
+        
+        initial = {'group_name': 'anonymous',
+                   'people': [{'first_name':'John', 'last_name':'Smith'},
+                              {'first_name':'Jane', 'last_name':'Doe'}],}
+        form = GroupForm(initial=initial)
+        post_form_init(form)
+        form_html = unicode(form)
+        self.assertTrue('value="John"' in form_html)
+        
+        data = {'group_name': 'anonymous',
+                'people-TOTAL_FORMS': '3',
+                'people-INITIAL_FORMS': '2',
+                'people-0-first_name':'John',
+                'people-0-last_name':'Smith',
+                'people-1-first_name':'Jane',
+                'people-1-last_name':'Doe',}
+        form = GroupForm(initial=initial, data=data)
+        post_form_init(form)
+        self.assertTrue(form.is_valid())
+        form_html = unicode(form)
+        self.assertTrue('value="John"' in form_html)
+
 
