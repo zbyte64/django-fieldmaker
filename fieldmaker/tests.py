@@ -137,6 +137,7 @@ class TestMetaFields(unittest.TestCase):
         self.assertTrue(form.is_valid())
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
+        self.assertEqual(initial, form.cleaned_data)
     
     def test_list_form_field(self):
         class PersonForm(forms.Form):
@@ -172,5 +173,6 @@ class TestMetaFields(unittest.TestCase):
         self.assertTrue(form.is_valid())
         form_html = unicode(form)
         self.assertTrue('value="John"' in form_html)
+        #self.assertEqual(len(form.cleaned_data['people']), 2) #TODO don't return empty results
 
 

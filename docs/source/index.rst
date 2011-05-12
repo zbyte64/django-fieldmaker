@@ -8,6 +8,7 @@ Welcome to Django Fieldmaker's documentation!
    manual/installation
    manual/expandableforms
    manual/expandableadmin
+   manual/metaformfields
    manual/facetfield
    manual/extending
    manual/contrib
