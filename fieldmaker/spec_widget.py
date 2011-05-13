@@ -106,14 +106,23 @@ class FormField(forms.Field):
         return value
 
 class ListFormWidget(FormWidget):
+    def _media(self):
+        from django.conf import settings
+        js = ['js/jquery.min.js', 'js/jquery.init.js', 'js/inlines.min.js']
+        return forms.Media(js=['%s%s' % (settings.ADMIN_MEDIA_PREFIX, url) for url in js])
+    media = property(_media)
+    
     def render(self, name, node, attrs=None):
         if not attrs:
             attrs = {}
         final_attrs = self.build_attrs(attrs)
         if self.form:
             parts = list()
-            for form in self.form.forms:
+            forms = list(self.form.forms)
+            last_form = forms.pop()
+            for form in forms:
                 parts.append(u'<tr><td><table class="module">%s</table></td></tr>' % form.as_table())
+            parts.append(u'<tr id="%s-empty" class="empty-form"><td><table class="module">%s</table></td></tr>' % (self.form.prefix, last_form.as_table()))
             return mark_safe(u'%s<table%s> %s</table>' % (self.form.management_form.as_table(), flatatt(final_attrs), u'\n'.join(parts)))
         return mark_safe(u'<table%s>&nbsp;</table>' % flatatt(final_attrs))
 
@@ -122,7 +131,7 @@ class ListFormField(FormField):
     
     def create_field_form(self, name, form):
         prefix = form.add_prefix(name)
-        formset = formset_factory(self.form_cls) #TODO allow for configuration
+        formset = formset_factory(self.form_cls)#, can_delete=True) #TODO allow for configuration
         return formset(data=form.data or None, prefix=prefix, initial=form.initial.get(name))
     
     def clean(self, value):
