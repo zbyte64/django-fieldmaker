@@ -36,10 +36,10 @@ class ExpandableAdminModelForm(ExpandableModelForm):
 
 class FieldEntryForm(forms.Form):
     name = forms.SlugField()
-    field = forms.ChoiceField(choices=[])
-    field_spec = forms.CharField(required=False, widget=FormWidget)
-    widget = forms.ChoiceField(choices=[])
-    widget_spec = forms.CharField(required=False, widget=FormWidget)
+    field = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class':'vFieldSelectorField'}))
+    field_spec = forms.CharField(required=False, widget=FormWidget(attrs={'class':'vFieldSpecField'}))
+    widget = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class':'vWidgetSelectorField'}))
+    widget_spec = forms.CharField(required=False, widget=FormWidget(attrs={'class':'vWidgetSpecField'}))
     
     def __init__(self, *args, **kwargs):
         super(FieldEntryForm, self).__init__(*args, **kwargs)
@@ -132,6 +132,8 @@ class AdminFormDefinitionForm(forms.ModelForm, MetaFormMixin):
         if self.instance:
             self.initial['data'] = self.instance.get_data()
         self.post_form_init()
+        self.field_forms = field_registry.fields
+        self.widget_forms = field_registry.widgets
     
     def save(self, *args, **kwargs):
         instance = forms.ModelForm.save(self, *args, **kwargs)

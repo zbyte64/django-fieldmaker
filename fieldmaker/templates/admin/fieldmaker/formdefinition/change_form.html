@@ -6,13 +6,53 @@
 <script type="text/javascript">
 (function($) {
     $(document).ready(function() {
-        $('#id_data > tbody > tr').formset({
+        get_field_def = function(key) {
+            return $("#id-field-defs > ."+key);
+        }
+        get_widget_def = function(key) {
+            return $("#id-widget-defs > ."+key);
+        }
+        
+        var rows = "#id_data > tbody > tr";
+        
+        $(rows).formset({
             prefix: "data",
             addText: "Add another Field Entry",
             formCssClass: "dynamic-form",
             deleteCssClass: "inline-deletelink",
             deleteText: "Remove",
             emptyCssClass: "empty-form",
+        });
+        
+        $(rows+' .vFieldSelectorField').change(function() {
+            var key = $(this).val();
+            if (!key) return;
+            var prefix = $(this).attr('name').split('-');
+            prefix.pop();
+            prefix = prefix.join('-');
+
+            var field_form = get_field_def(key).clone();
+            var field_spec = $(this).parents('table:first').find('table.vFieldSpecField');
+            field_form.find(':input').each(function() {
+                var field_name = $(this).attr('name');
+                $(this).attr('name', field_name.replace(/prefix/, prefix));
+            });
+            field_form.children().appendTo(field_spec.empty())
+        });
+        $(rows+' .vWidgetSelectorField').change(function() {
+            var key = $(this).val();
+            if (!key) return;
+            var prefix = $(this).attr('name').split('-');
+            prefix.pop();
+            prefix = prefix.join('-');
+
+            var field_form = get_widget_def(key).clone();
+            var field_spec = $(this).parents('table:first').find('table.vWidgetSpecField');
+            field_form.find(':input').each(function() {
+                var field_name = $(this).attr('name');
+                $(this).attr('name', field_name.replace(/prefix/, prefix));
+            });
+            field_form.children().appendTo(field_spec.empty())
         });
     });
 })(django.jQuery);
@@ -22,4 +62,23 @@
 {% block object-tools-items %}
 {{ block.super }}
 <li><a href="preview/" class="previewlink">{% trans "Preview" %}</a></li>
+{% endblock %}
+
+{% block form_top %}
+{{block.super}}
+<div style="display:none" id="id-field-defs">
+{% for key, entry in adminform.form.field_forms.iteritems %}
+<table class="{{key}}">
+    {{entry.form.as_table}}
+</table>
+{% endfor %}
+</div>
+
+<div style="display:none" id="id-widget-defs">
+{% for key, entry in adminform.form.widget_forms.iteritems %}
+<table class="{{key}}">
+    {{entry.form.as_table}}
+</table>
+{% endfor %}
+</div>
 {% endblock %}
