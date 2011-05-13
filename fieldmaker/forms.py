@@ -23,7 +23,7 @@ class ExpandableFormMixin(MetaFormMixin):
     
 class ExpandableForm(forms.Form, ExpandableFormMixin):
     def __init__(self, *args, **kwargs):
-        super(ExpandableForm, self).__init__(*args, **kwargs)
+        forms.Form.__init__(self, *args, **kwargs)
         self.install_expanded_fields()
         self.post_form_init()
     
@@ -33,7 +33,7 @@ class ExpandableForm(forms.Form, ExpandableFormMixin):
 
 class ExpandableModelForm(forms.ModelForm, ExpandableFormMixin):
     def __init__(self, *args, **kwargs):
-        super(ExpandableModelForm, self).__init__(*args, **kwargs)
+        forms.ModelForm.__init__(self, *args, **kwargs)
         self.install_expanded_fields()
         if self.instance and self.instance.pk:
             data = self.get_expanded_data(self.instance)

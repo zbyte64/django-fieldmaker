@@ -1,6 +1,6 @@
 from django.forms import widgets
 from django import forms
-from django.forms.formsets import formset_factory
+from django.forms.formsets import formset_factory, BaseFormSet
 from django.utils.safestring import mark_safe
 from django.forms.util import flatatt
 
@@ -126,12 +126,37 @@ class ListFormWidget(FormWidget):
             return mark_safe(u'%s<table%s> %s</table>' % (self.form.management_form.as_table(), flatatt(final_attrs), u'\n'.join(parts)))
         return mark_safe(u'<table%s>&nbsp;</table>' % flatatt(final_attrs))
 
+class BaseListFormSet(BaseFormSet):
+    def _get_cleaned_data(self):
+        """
+        Returns a list of form.cleaned_data dicts for every form in self.forms.
+        """
+        if not self.is_valid():
+            raise AttributeError("'%s' object has no attribute 'cleaned_data'" % self.__class__.__name__)
+        result = list()
+        for form in self.forms:
+            if self.can_delete:
+                if self._should_delete_form(form):
+                    continue
+                else:
+                    data = dict(form.cleaned_data)
+                    data.pop('DELETE', None)
+                    result.append(data)
+            else:
+                result.append(form.cleaned_data)
+        return result
+    cleaned_data = property(_get_cleaned_data)
+
 class ListFormField(FormField):
     widget = ListFormWidget
+    can_delete = True
+    formset = BaseListFormSet
     
     def create_field_form(self, name, form):
         prefix = form.add_prefix(name)
-        formset = formset_factory(self.form_cls)#, can_delete=True) #TODO allow for configuration
+        formset = formset_factory(self.form_cls,
+                                  formset=self.formset,
+                                  can_delete=self.can_delete) #TODO allow for configuration
         return formset(data=form.data or None, prefix=prefix, initial=form.initial.get(name))
     
     def clean(self, value):

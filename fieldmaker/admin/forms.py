@@ -1,11 +1,10 @@
 from django import forms
-from django.forms.formsets import formset_factory, BaseFormSet
 
 from django.contrib.admin import widgets as admin_widgets
 from django.forms import widgets
 
 from fieldmaker.resource import field_registry
-from fieldmaker.spec_widget import FormWidget, MetaForm, MetaFormMixin, FormField, ListFormField
+from fieldmaker.spec_widget import FormWidget, ListFormField
 from fieldmaker.forms import ExpandableModelForm
 from fieldmaker.models import FormDefinition
 
@@ -124,12 +123,15 @@ class FieldEntryForm(forms.Form):
                 raise forms.ValidationError('Please fix your widget')
         return self.cleaned_data
 
-class AdminFormDefinitionForm(forms.ModelForm, MetaFormMixin):
+class AdminFormDefinitionForm(ExpandableAdminModelForm):
     data = ListFormField(form=FieldEntryForm)
     
     def __init__(self, *args, **kwargs):
         forms.ModelForm.__init__(self, *args, **kwargs)
-        if self.instance:
+        self.install_expanded_fields()
+        if self.instance and self.instance.pk:
+            data = self.get_expanded_data(self.instance)
+            self.initial.update(data)
             self.initial['data'] = self.instance.get_data()
         self.post_form_init()
         self.field_forms = field_registry.fields
@@ -142,48 +144,4 @@ class AdminFormDefinitionForm(forms.ModelForm, MetaFormMixin):
     
     class Meta:
         model = FormDefinition
-
-class BaseFieldEntryFormSet(BaseFormSet):
-    def __init__(self, *args, **kwargs):
-        self.instance = kwargs.pop('instance', None)
-        self.queryset = kwargs.pop('queryset', None)
-        kwargs.pop('save_as_new', None)
-        if self.instance and self.instance.pk:
-            form_spec = self.instance.get_form_specification()
-            initial = form_spec.data_to_field_form_set_initial(self.instance.get_data())
-            kwargs.setdefault('initial', initial)
-        super(BaseFieldEntryFormSet, self).__init__(*args, **kwargs)
-    
-    def save(self, commit=True):
-        form_spec = self.instance.get_form_specification()
-        data = form_spec.bound_field_form_set_to_data(self)
-        self.instance.set_data(data)
-        if commit:
-            self.instance.save()
-        
-        #TODO populate the following
-        #CONSIDER: django admin requires these attributes
-        self.new_objects = list()
-        self.changed_objects = list()
-        self.deleted_objects = list()
-    
-    def get_queryset(self, request=None):
-        #CONSIDER: django admin requires we return an iterable of model instances
-        if self.instance.pk:
-            return [self.instance for i in range(len(self.instance.get_fields()))]
-        return []
-    
-    def widget_forms(self): #helper function for displaying templated forms in admin
-        forms = dict()
-        for key, value in field_registry.widgets.iteritems():
-            forms[key] = value.get_form()(prefix='prefix-widget_spec')
-        return forms
-    
-    def field_forms(self):
-        forms = dict()
-        for key, value in field_registry.fields.iteritems():
-            forms[key] = value.get_form()(prefix='prefix-field_spec')
-        return forms
-
-FieldEntryFormSet = formset_factory(FieldEntryForm, formset=BaseFieldEntryFormSet)
 
