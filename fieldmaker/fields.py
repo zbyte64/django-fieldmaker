@@ -1,8 +1,11 @@
 from django import forms
 from django.forms import widgets
+from django.forms.formsets import formset_factory
+from django.utils.safestring import mark_safe
 
 from resource import field_registry
 from utils import prep_for_kwargs
+import spec_widget
 
 class BaseFieldForm(forms.Form):
     required = forms.BooleanField(initial=True, required=False)
@@ -22,8 +25,11 @@ class BaseField(object):
     form = BaseFieldForm
     default_widget = 'TextInput'
     
-    def create_field(self, data):
-        return self.field(**prep_for_kwargs(data))
+    def create_field(self, data, widget=None):
+        kwargs = prep_for_kwargs(data)
+        if widget:
+            kwargs['widget'] = widget
+        return self.field(**kwargs)
     
     def widget_choices(self):
         choices = list()
@@ -43,6 +49,9 @@ class BaseField(object):
     
     def get_form(self):
         return self.form
+    
+    def render_for_admin(self, key):
+        return mark_safe('<table class="%s">%s</table>' % (key, self.get_form()().as_table()))
 
 class BooleanField(BaseField):
     field = forms.BooleanField
@@ -69,9 +78,12 @@ class ChoiceField(BaseField):
     field = forms.ChoiceField
     identities = ['ChoiceField']
 
-    def create_field(self, data):
-        data['choices'] = [row.split(',',1) for row in data['choices'].split('\n')]
-        return self.field(**data)
+    def create_field(self, data, widget=None):
+        kwargs = prep_for_kwargs(data)
+        if widget:
+            kwargs['widget'] = widget
+        kwargs['choices'] = [row.split(',',1) for row in kwargs['choices'].split('\n')]
+        return self.field(**kwargs)
 
 field_registry.register_field('ChoiceField', ChoiceField)
 
@@ -80,8 +92,11 @@ class MultipleChoiceField(BaseField):
     field = forms.MultipleChoiceField
     identities = ['MultipleChoiceField']
 
-    def create_field(self, data):
-        data['choices'] = [row.split(',',1) for row in data['choices'].split('\n')]
+    def create_field(self, data, widget=None):
+        kwargs = prep_for_kwargs(data)
+        if widget:
+            kwargs['widget'] = widget
+        kwargs['choices'] = [row.split(',',1) for row in kwargs['choices'].split('\n')]
         return self.field(**data)
 
 field_registry.register_field('MultipleChoiceField', MultipleChoiceField)
@@ -197,4 +212,53 @@ class URLField(BaseField):
     identities = ['URLField']
 
 field_registry.register_field('URLField', URLField)
+
+class BaseFormSetField(BaseField):
+    formset = spec_widget.BaseListFormSet
+    
+    def get_form(self):
+        formset = formset_factory(self.form,
+                                  formset=self.formset,
+                                  can_delete=True) #TODO allow for configuration
+        return formset
+    
+    def render_for_admin(self, key):
+        parts = list()
+        form = self.get_form()()
+        for subform in form:
+            parts.append(u'<tr class="dynamic-form"><td><table class="module">%s</table></td></tr>' % subform.as_table())
+        parts.append(u'<tr class="dynamic-form empty-form"><td><table class="module">%s</table></td></tr>' % (form.empty_form.as_table()))
+        return mark_safe(u'<div class="%s">%s<table> %s</table></div>' % (key, unicode(form.management_form), u'\n'.join(parts)))
+
+from admin.forms import FieldEntryForm
+
+class FormField(BaseFormSetField):
+    form = FieldEntryForm
+    field = spec_widget.FormField
+    identities = ['FormField']
+    
+    def create_field(self, data, widget=None):
+        entries = list()
+        for entry in data:
+            if entry:
+                entries.append(entry)
+        form = field_registry.form_specifications['base.1'].create_form(entries)
+        return self.field(form=form)
+
+field_registry.register_field('FormField', FormField)
+
+class ListFormField(BaseFormSetField):
+    form = FieldEntryForm
+    field = spec_widget.ListFormField
+    identities = ['ListFormField']
+    
+    def create_field(self, data, widget=None):
+        entries = list()
+        for entry in data:
+            if entry:
+                entries.append(entry)
+        form = field_registry.form_specifications['base.1'].create_form(entries)
+        return self.field(form=form)
+
+field_registry.register_field('ListFormField', ListFormField)
 

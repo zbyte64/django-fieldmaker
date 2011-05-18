@@ -63,17 +63,10 @@ class FormWidget(widgets.Widget):
         return our_data
     
     def _has_changed(self, initial_value, data_value):
+        if self.form:
+            return bool(self.form.changed_data)
         if not initial_value and not data_value:
             return False
-        if self.form:
-            cleaned_data = self.form.cleaned_data
-            if isinstance(cleaned_data, list):
-                data_value = list()
-                for entry in cleaned_data:
-                    if entry:
-                        data_value.append(entry)
-            else:
-                data_value = cleaned_data
         if isinstance(data_value, dict):
             return not compare_dict(initial_value, data_value)
         if isinstance(data_value, list):
@@ -116,13 +109,11 @@ class ListFormWidget(FormWidget):
         if not attrs:
             attrs = {}
         final_attrs = self.build_attrs(attrs)
-        if self.form:
+        if self.form: #TODO move this to BaseListFormSet
             parts = list()
-            forms = list(self.form.forms)
-            last_form = forms.pop()
-            for form in forms:
+            for form in self.form.forms:
                 parts.append(u'<tr><td><table class="module">%s</table></td></tr>' % form.as_table())
-            parts.append(u'<tr id="%s-empty" class="empty-form"><td><table class="module">%s</table></td></tr>' % (self.form.prefix, last_form.as_table()))
+            parts.append(u'<tr id="%s-empty" class="empty-form"><td><table class="module">%s</table></td></tr>' % (self.form.prefix, self.form.empty_form.as_table()))
             return mark_safe(u'%s<table%s> %s</table>' % (self.form.management_form.as_table(), flatatt(final_attrs), u'\n'.join(parts)))
         return mark_safe(u'<table%s>&nbsp;</table>' % flatatt(final_attrs))
 
@@ -135,17 +126,50 @@ class BaseListFormSet(BaseFormSet):
             raise AttributeError("'%s' object has no attribute 'cleaned_data'" % self.__class__.__name__)
         result = list()
         for form in self.forms:
+            form.full_clean()
             if self.can_delete:
                 if self._should_delete_form(form):
                     continue
-                else:
+                elif form.is_valid():
                     data = dict(form.cleaned_data)
                     data.pop('DELETE', None)
-                    result.append(data)
-            else:
-                result.append(form.cleaned_data)
+                    if data or form.has_changed():
+                        result.append(data)
+            elif form.is_valid():
+                if form.cleaned_data or form.has_changed():
+                    result.append(form.cleaned_data)
         return result
     cleaned_data = property(_get_cleaned_data)
+    
+    def is_valid(self):
+        """
+        Returns True if form.errors is empty for every form in self.forms.
+        """
+        if not self.is_bound:
+            return False
+        # We loop over every form.errors here rather than short circuiting on the
+        # first failure to make sure validation gets triggered for every form.
+        forms_valid = True
+        err = self.errors
+        for i in range(0, self.total_form_count()):
+            form = self.forms[i]
+            if self.can_delete:
+                if self._should_delete_form(form):
+                    # This form is going to be deleted so any of its errors
+                    # should not cause the entire formset to be invalid.
+                    continue
+            if bool(self.errors[i]) and bool(form.changed_data):
+                forms_valid = False
+        return forms_valid and not bool(self.non_form_errors())
+    
+    def _get_changed_data(self):
+        if getattr(self, '_changed_data', None) is None:
+            self._changed_data = []
+            for i in range(0, self.total_form_count()):
+                form = self.forms[i]
+                self._changed_data.append(form.changed_data)
+        return self._changed_data
+    changed_data = property(_get_changed_data)
 
 class ListFormField(FormField):
     widget = ListFormWidget
@@ -174,6 +198,8 @@ class MetaFormMixin(object):
         for name, field in self.fields.iteritems():
             if hasattr(field, 'post_form_init'):
                 field.post_form_init(name, self)
+    
+    
 
 class MetaForm(forms.Form, MetaFormMixin):
     def __init__(self, *args, **kwargs):

@@ -2,6 +2,7 @@ from django import forms
 from django.utils.datastructures import SortedDict
 
 from resource import field_registry
+from spec_widget import MetaForm
 
 class FormSpecification(object):
     version = 'base.1'
@@ -14,7 +15,7 @@ class FormSpecification(object):
               ]
     
     def create_form(self, data):
-        class GeneratedForm(forms.Form):
+        class GeneratedForm(MetaForm):
             pass
             
         GeneratedForm.base_fields = self.get_fields(data)
@@ -28,9 +29,8 @@ class FormSpecification(object):
             widget_maker = field_registry.widgets[field_def['widget']]
             
             widget = widget_maker.create_widget(field_def['widget_spec'])
-            field_kwargs = dict(field_def['field_spec'])
-            field_kwargs['widget'] = widget
-            field = field_maker.create_field(field_kwargs)
+            field_kwargs = field_def['field_spec']
+            field = field_maker.create_field(field_kwargs, widget=widget)
             
             field_dict[field_def['name']] = field
         return field_dict

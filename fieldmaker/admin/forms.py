@@ -34,7 +34,7 @@ class ExpandableAdminModelForm(ExpandableModelForm):
         return fields
 
 class FieldEntryForm(forms.Form):
-    name = forms.SlugField()
+    name = forms.SlugField(required=True)
     field = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class':'vFieldSelectorField'}))
     field_spec = forms.CharField(required=False, widget=FormWidget(attrs={'class':'vFieldSpecField'}))
     widget = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class':'vWidgetSelectorField'}))
@@ -100,16 +100,21 @@ class FieldEntryForm(forms.Form):
         return form_cls(data=self.data or None, prefix=prefix, initial=self.initial.get('widget_spec'))
     
     def load_field_form(self):
-        self.field_form = self.create_field_form()
-        self.fields['field_spec'].widget.form = self.field_form
+        self.fields['field_spec'].widget.set_form(self.create_field_form())
     
     def load_widget_form(self):
-        self.widget_form = self.create_widget_form()
-        self.fields['widget_spec'].widget.form = self.widget_form
+        self.fields['widget_spec'].widget.set_form(self.create_widget_form())
+    
+    @property
+    def field_form(self):
+        return self.fields['field_spec'].widget.form
+    
+    @property
+    def widget_form(self):
+        return self.fields['widget_spec'].widget.form
     
     def clean(self):
         self.load_field_form()
-        
         self.load_widget_form()
         if self.field_form:
             if self.field_form.is_valid():
@@ -134,8 +139,12 @@ class AdminFormDefinitionForm(ExpandableAdminModelForm):
             self.initial.update(data)
             self.initial['data'] = self.instance.get_data()
         self.post_form_init()
-        self.field_forms = field_registry.fields
-        self.widget_forms = field_registry.widgets
+        self.field_forms = dict()
+        self.widget_forms = dict()
+        for key, entry in field_registry.fields.iteritems():
+            self.field_forms[key] = entry.render_for_admin(key)
+        for key, entry in field_registry.widgets.iteritems():
+            self.widget_forms[key] = entry.render_for_admin(key)
     
     def save(self, *args, **kwargs):
         instance = forms.ModelForm.save(self, *args, **kwargs)

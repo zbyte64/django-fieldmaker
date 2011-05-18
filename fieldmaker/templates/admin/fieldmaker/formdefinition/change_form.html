@@ -21,36 +21,46 @@
             formCssClass: "dynamic-form",
             deleteCssClass: "inline-deletelink",
             deleteText: "Remove",
-            emptyCssClass: "empty-form",
+            emptyCssClass: "empty-form"
         });
         
-        $(rows+' .vFieldSelectorField').change(function() {
+        $('.vFieldSelectorField').live('change', function() {
             var key = $(this).val();
             if (!key) return;
             var prefix = $(this).attr('name').split('-');
             prefix.pop();
-            prefix = prefix.join('-');
+            prefix = prefix.join('-') + '-field_spec';
 
             var field_form = get_field_def(key).clone();
             var field_spec = $(this).parents('table:first').find('table.vFieldSpecField');
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
-                $(this).attr('name', field_name.replace(/prefix/, prefix));
+                $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
             });
             field_form.children().appendTo(field_spec.empty())
+            console.log(field_spec.find('.dynamic-form'));
+            console.log(prefix);
+            field_spec.find('.dynamic-form').formset({
+                prefix: prefix,
+                addText: "Add another Field Entry",
+                formCssClass: "dynamic-form",
+                deleteCssClass: "inline-deletelink",
+                deleteText: "Remove",
+                emptyCssClass: "empty-form"
+            });
         });
-        $(rows+' .vWidgetSelectorField').change(function() {
+        $('.vWidgetSelectorField').live('change', function() {
             var key = $(this).val();
             if (!key) return;
             var prefix = $(this).attr('name').split('-');
             prefix.pop();
-            prefix = prefix.join('-');
+            prefix = prefix.join('-') + '-widget_spec';
 
             var field_form = get_widget_def(key).clone();
             var field_spec = $(this).parents('table:first').find('table.vWidgetSpecField');
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
-                $(this).attr('name', field_name.replace(/prefix/, prefix));
+                $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
             });
             field_form.children().appendTo(field_spec.empty())
         });
@@ -67,18 +77,14 @@
 {% block form_top %}
 {{block.super}}
 <div style="display:none" id="id-field-defs">
-{% for key, entry in adminform.form.field_forms.iteritems %}
-<table class="{{key}}">
-    {{entry.form.as_table}}
-</table>
+{% for entry in adminform.form.field_forms.itervalues %}
+{{entry}}
 {% endfor %}
 </div>
 
 <div style="display:none" id="id-widget-defs">
-{% for key, entry in adminform.form.widget_forms.iteritems %}
-<table class="{{key}}">
-    {{entry.form.as_table}}
-</table>
+{% for entry in adminform.form.widget_forms.itervalues %}
+{{entry}}
 {% endfor %}
 </div>
 {% endblock %}

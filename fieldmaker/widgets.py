@@ -1,9 +1,11 @@
 from django import forms
 from django.forms import widgets
+from django.utils.safestring import mark_safe
 
 from resource import field_registry
 from utils import prep_for_kwargs
 import html5widgets
+import spec_widget
 
 class BaseWidgetForm(forms.Form):
     classes = forms.CharField(required=False)
@@ -33,6 +35,9 @@ class BaseWidget(object):
     
     def get_form(self):
         return self.form
+    
+    def render_for_admin(self, key):
+        return mark_safe('<table class="%s">%s</table>' % (key, self.get_form()().as_table()))
 
 class TextInput(BaseWidget):
     widget = widgets.TextInput
@@ -196,4 +201,16 @@ class URLInput(BaseWidget):
     identities = ['URLField']
 
 field_registry.register_widget('URLInput', URLInput)
+
+class FormWidget(BaseWidget):
+    widget = spec_widget.FormWidget
+    identities = ['FormField']
+
+field_registry.register_widget('FormWidget', FormWidget)
+
+class ListFormWidget(BaseWidget):
+    widget = spec_widget.ListFormWidget
+    identities = ['ListFormField']
+
+field_registry.register_widget('ListFormWidget', ListFormWidget)
 
