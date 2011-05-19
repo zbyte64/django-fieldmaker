@@ -47,6 +47,8 @@ class FormWidget(widgets.Widget):
             attrs = {}
         final_attrs = self.build_attrs(attrs)
         if self.form:
+            if hasattr(self.form, 'render'):
+                return self.form.render()
             return mark_safe(u'<table%s>%s</table>' % (flatatt(final_attrs), self.form.as_table()))
         return mark_safe(u'<table%s>&nbsp;</table>' % flatatt(final_attrs))
     
@@ -114,7 +116,7 @@ class ListFormWidget(FormWidget):
             for form in self.form.forms:
                 parts.append(u'<tr><td><table class="module">%s</table></td></tr>' % form.as_table())
             parts.append(u'<tr id="%s-empty" class="empty-form"><td><table class="module">%s</table></td></tr>' % (self.form.prefix, self.form.empty_form.as_table()))
-            return mark_safe(u'%s<table%s> %s</table>' % (self.form.management_form.as_table(), flatatt(final_attrs), u'\n'.join(parts)))
+            return mark_safe(u'<div>%s<table %s> %s</table></div>' % (unicode(self.form.management_form), flatatt(final_attrs), u'\n'.join(parts)))
         return mark_safe(u'<table%s>&nbsp;</table>' % flatatt(final_attrs))
 
 class BaseListFormSet(BaseFormSet):
@@ -158,7 +160,7 @@ class BaseListFormSet(BaseFormSet):
                     # This form is going to be deleted so any of its errors
                     # should not cause the entire formset to be invalid.
                     continue
-            if bool(self.errors[i]) and bool(form.changed_data):
+            if bool(self.errors[i]) and form.has_changed():
                 forms_valid = False
         return forms_valid and not bool(self.non_form_errors())
     
@@ -175,6 +177,13 @@ class BaseListFormSet(BaseFormSet):
         for entry in self.changed_data:
             if len(entry): return True
         return False
+    
+    def render(self):
+        parts = list()
+        for form in self.forms:
+            parts.append(u'<tr class="dynamic-form"><td><table class="module">%s</table></td></tr>' % form.as_table())
+        parts.append(u'<tr id="%s-empty" class="dynamic-form empty-form"><td><table class="module">%s</table></td></tr>' % (self.prefix, self.empty_form.as_table()))
+        return mark_safe(u'<div>%s <table>%s</table></div>' % (unicode(self.management_form), u'\n'.join(parts)))
 
 class ListFormField(FormField):
     widget = ListFormWidget
