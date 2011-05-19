@@ -228,7 +228,7 @@ class BaseFormSetField(BaseField):
         for subform in form:
             parts.append(u'<tr class="dynamic-form"><td><table class="module">%s</table></td></tr>' % subform.as_table())
         parts.append(u'<tr class="dynamic-form empty-form"><td><table class="module">%s</table></td></tr>' % (form.empty_form.as_table()))
-        return mark_safe(u'<div class="%s">%s<table> %s</table></div>' % (key, unicode(form.management_form), u'\n'.join(parts)))
+        return mark_safe(u'<div class="%s dynamic-set">%s<table> %s</table></div>' % (key, unicode(form.management_form), u'\n'.join(parts)))
 
 from admin.forms import FieldEntryForm
 

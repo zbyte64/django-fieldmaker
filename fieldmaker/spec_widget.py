@@ -112,6 +112,8 @@ class ListFormWidget(FormWidget):
             attrs = {}
         final_attrs = self.build_attrs(attrs)
         if self.form: #TODO move this to BaseListFormSet
+            if hasattr(self.form, 'render'):
+                return self.form.render()
             parts = list()
             for form in self.form.forms:
                 parts.append(u'<tr><td><table class="module">%s</table></td></tr>' % form.as_table())
@@ -183,7 +185,7 @@ class BaseListFormSet(BaseFormSet):
         for form in self.forms:
             parts.append(u'<tr class="dynamic-form"><td><table class="module">%s</table></td></tr>' % form.as_table())
         parts.append(u'<tr id="%s-empty" class="dynamic-form empty-form"><td><table class="module">%s</table></td></tr>' % (self.prefix, self.empty_form.as_table()))
-        return mark_safe(u'<div>%s <table>%s</table></div>' % (unicode(self.management_form), u'\n'.join(parts)))
+        return mark_safe(u'<div class="dynamic-set" data-prefix="%s">%s <table>%s</table></div>' % (self.prefix, unicode(self.management_form), u'\n'.join(parts)))
 
 class ListFormField(FormField):
     widget = ListFormWidget

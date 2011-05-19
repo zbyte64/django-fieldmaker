@@ -13,16 +13,24 @@
             return $("#id-widget-defs > ."+key);
         }
         
-        var rows = "#id_data > tbody > tr";
+        register_dynamic_set = function() {
+            var $this = $(this);
+            var prefix = $this.attr('data-prefix');
+            if (!prefix) return;
+            var rows = $this.children('table').children('tbody').children('.dynamic-form');
+            console.log(rows)
+            if (!rows) return;
+            rows.formset({
+                prefix: prefix,
+                addText: "Add another Field Entry",
+                formCssClass: "dynamic-form",
+                deleteCssClass: "inline-deletelink",
+                deleteText: "Remove",
+                emptyCssClass: "empty-form"
+            });
+        }
         
-        $(rows).formset({
-            prefix: "data",
-            addText: "Add another Field Entry",
-            formCssClass: "dynamic-form",
-            deleteCssClass: "inline-deletelink",
-            deleteText: "Remove",
-            emptyCssClass: "empty-form"
-        });
+        $('.dynamic-set').each(register_dynamic_set);
         
         $('.vFieldSelectorField').live('change', function() {
             var key = $(this).val();
@@ -31,23 +39,19 @@
             prefix.pop();
             prefix = prefix.join('-') + '-field_spec';
 
-            var field_form = get_field_def(key).clone();
-            var field_spec = $(this).parents('table:first').find('table.vFieldSpecField');
+            var field_form = get_field_def(key).clone().addClass('vFieldSpecField');
+            console.log(field_form)
+            var field_spec = $(this).parents('table:first').find('.vFieldSpecField');
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
                 $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
             });
-            field_form.children().appendTo(field_spec.empty())
-            console.log(field_spec.find('.dynamic-form'));
-            console.log(prefix);
-            field_spec.find('.dynamic-form').formset({
-                prefix: prefix,
-                addText: "Add another Field Entry",
-                formCssClass: "dynamic-form",
-                deleteCssClass: "inline-deletelink",
-                deleteText: "Remove",
-                emptyCssClass: "empty-form"
-            });
+            field_form.attr('data-prefix', prefix);
+            field_spec.replaceWith(field_form)
+            
+            if (field_form.hasClass('dynamic-set')) {
+                //field_form.each(register_dynamic_set);
+            }
         });
         $('.vWidgetSelectorField').live('change', function() {
             var key = $(this).val();
