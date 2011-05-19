@@ -117,6 +117,9 @@ class TestMetaFields(unittest.TestCase):
         self.assertTrue('value="John"' in form_html)
         self.assertEqual(initial, form.cleaned_data)
     
+    def test_double_nested_form(self):
+        pass
+    
     def test_list_form_field(self):
         class PersonForm(forms.Form):
             first_name = forms.CharField()

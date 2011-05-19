@@ -64,7 +64,7 @@ class FormWidget(widgets.Widget):
     
     def _has_changed(self, initial_value, data_value):
         if self.form:
-            return bool(self.form.changed_data)
+            return self.form.has_changed()
         if not initial_value and not data_value:
             return False
         if isinstance(data_value, dict):
@@ -170,6 +170,11 @@ class BaseListFormSet(BaseFormSet):
                 self._changed_data.append(form.changed_data)
         return self._changed_data
     changed_data = property(_get_changed_data)
+    
+    def has_changed(self):
+        for entry in self.changed_data:
+            if len(entry): return True
+        return False
 
 class ListFormField(FormField):
     widget = ListFormWidget
