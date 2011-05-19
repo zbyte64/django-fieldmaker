@@ -103,8 +103,11 @@ class FormField(forms.Field):
 class ListFormWidget(FormWidget):
     def _media(self):
         from django.conf import settings
-        js = ['js/jquery.min.js', 'js/jquery.init.js', 'js/inlines.min.js']
-        return forms.Media(js=['%s%s' % (settings.ADMIN_MEDIA_PREFIX, url) for url in js])
+        js = [settings.ADMIN_MEDIA_PREFIX+'js/jquery.min.js',
+              settings.ADMIN_MEDIA_PREFIX+'js/jquery.init.js',
+              settings.ADMIN_MEDIA_PREFIX+'js/inlines.min.js',
+              'fieldmaker/js/inline.js',]
+        return forms.Media(js=js)
     media = property(_media)
     
     def render(self, name, node, attrs=None):

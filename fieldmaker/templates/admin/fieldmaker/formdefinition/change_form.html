@@ -13,35 +13,17 @@
             return $("#id-widget-defs > ."+key);
         }
         
-        register_dynamic_set = function() {
-            var $this = $(this);
-            var prefix = $this.attr('data-prefix');
-            if (!prefix) return;
-            var rows = $this.children('table').children('tbody').children('.dynamic-form');
-            console.log(rows)
-            if (!rows) return;
-            rows.formset({
-                prefix: prefix,
-                addText: "Add another Field Entry",
-                formCssClass: "dynamic-form",
-                deleteCssClass: "inline-deletelink",
-                deleteText: "Remove",
-                emptyCssClass: "empty-form"
-            });
-        }
-        
-        $('.dynamic-set').each(register_dynamic_set);
-        
-        $('.vFieldSelectorField').live('change', function() {
-            var key = $(this).val();
+        update_entry_specification = function(entry, cls, suffix, lookup_func) {
+            var $this = $(entry)
+            var key = $this.val();
             if (!key) return;
-            var prefix = $(this).attr('name').split('-');
+            var prefix = $this.attr('name').split('-');
             prefix.pop();
-            prefix = prefix.join('-') + '-field_spec';
+            prefix.push(suffix)
+            prefix = prefix.join('-');
 
-            var field_form = get_field_def(key).clone().addClass('vFieldSpecField');
-            console.log(field_form)
-            var field_spec = $(this).parents('table:first').find('.vFieldSpecField');
+            var field_form = lookup_func(key).clone().addClass(cls);
+            var field_spec = $this.parents('table:first').find('.'+cls);
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
                 $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
@@ -52,21 +34,13 @@
             if (field_form.hasClass('dynamic-set')) {
                 //field_form.each(register_dynamic_set);
             }
+        }
+        
+        $('.vFieldSelectorField').live('change', function() {
+            update_entry_specification(this, 'vFieldSpecField', 'field_spec', get_field_def)
         });
         $('.vWidgetSelectorField').live('change', function() {
-            var key = $(this).val();
-            if (!key) return;
-            var prefix = $(this).attr('name').split('-');
-            prefix.pop();
-            prefix = prefix.join('-') + '-widget_spec';
-
-            var field_form = get_widget_def(key).clone();
-            var field_spec = $(this).parents('table:first').find('table.vWidgetSpecField');
-            field_form.find(':input').each(function() {
-                var field_name = $(this).attr('name');
-                $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
-            });
-            field_form.children().appendTo(field_spec.empty())
+            update_entry_specification(this, 'vWidgetSpecField', 'widget_spec', get_widget_def)
         });
     });
 })(django.jQuery);
