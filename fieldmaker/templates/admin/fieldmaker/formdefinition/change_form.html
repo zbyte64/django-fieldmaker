@@ -27,13 +27,17 @@
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
                 $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
+                $(this).attr('id', 'id_'+$(this).attr('name'));
             });
             field_form.attr('data-prefix', prefix);
             field_spec.replaceWith(field_form)
             
             if (field_form.hasClass('dynamic-set')) {
-                //field_form.each(register_dynamic_set);
+                field_form.each(register_dynamic_set);
             }
+            console.log([field_form, field_form.find('.empty-form')])
+            field_form.find('.empty-form').attr('id', prefix+'-empty');
+            
         }
         
         $('.vFieldSelectorField').live('change', function() {

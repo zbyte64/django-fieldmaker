@@ -6,16 +6,21 @@
 {% block extrahead %}
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css" />
 <!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/ie.css" /><![endif]-->
-<script type="text/javascript" src="../../../jsi18n/"></script>
+<script type="text/javascript" src="../../../../jsi18n/"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}admin/js/core.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}admin/js/admin/RelatedObjectLookups.js"></script>
-
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}admin/js/jquery.init.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}admin/js/getElementsBySelector.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}admin/js/actions.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}admin/js/calendar.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}admin/js/admin/DateTimeShortcuts.js"></script>
+
 {{block.super}}
 {{form.media}}
+
+<!-- .dynamic-set[data-prefix] > table > tbody > .dynamic-form -->
+
 {% endblock %}
 
 {% block breadcrumbs %}

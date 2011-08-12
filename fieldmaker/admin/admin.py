@@ -72,7 +72,8 @@ class FormDefinitionAdmin(ExpandableModelAdmin):
         form_cls = instance.get_form()
         if request.POST:
             form = form_cls(request.POST)
-            form.is_valid()
+            if form.is_valid():
+                form = form_cls(initial=form.cleaned_data)
         else:
             form = form_cls()
         return TemplateResponse(request, 'admin/fieldmaker/formdefinition/preview_form.html',
