@@ -51,7 +51,7 @@ class BaseField(object):
         return self.form
     
     def render_for_admin(self, key):
-        return mark_safe('<table class="%s">%s</table>' % (key, self.get_form()().as_table()))
+        return mark_safe('<table class="%s">%s</table>' % (key, self.get_form()(prefix='prefix').as_table()))
 
 class BooleanField(BaseField):
     field = forms.BooleanField
