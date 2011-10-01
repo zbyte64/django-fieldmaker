@@ -3,7 +3,7 @@ from django.forms import widgets
 from django.forms.formsets import formset_factory
 from django.utils.safestring import mark_safe
 
-from resource import field_registry
+from resource import registry
 from utils import prep_for_kwargs
 import spec_widget
 
@@ -33,7 +33,7 @@ class BaseField(object):
     
     def widget_choices(self):
         choices = list()
-        for key, widget in field_registry.widgets.iteritems():
+        for key, widget in registry.widgets.iteritems():
             if not widget.identities:
                 choices.append((key, key))
             else:
@@ -57,7 +57,7 @@ class BooleanField(BaseField):
     field = forms.BooleanField
     identities = ['BooleanField']
 
-field_registry.register_field('BooleanField', BooleanField)
+registry.register_field('BooleanField', BooleanField)
 
 class CharFieldForm(BaseFieldForm):
     max_length = forms.IntegerField(required=False)
@@ -68,7 +68,7 @@ class CharField(BaseField):
     field = forms.CharField
     identities = ['CharField']
 
-field_registry.register_field('CharField', CharField)
+registry.register_field('CharField', CharField)
 
 class ChoiceFieldForm(BaseFieldForm):
     choices = forms.CharField(widget=widgets.Textarea, help_text='each line to contain: "value","label"')
@@ -85,7 +85,7 @@ class ChoiceField(BaseField):
         kwargs['choices'] = [row.split(',',1) for row in kwargs['choices'].split('\n')]
         return self.field(**kwargs)
 
-field_registry.register_field('ChoiceField', ChoiceField)
+registry.register_field('ChoiceField', ChoiceField)
 
 class MultipleChoiceField(BaseField):
     form = ChoiceFieldForm
@@ -99,19 +99,19 @@ class MultipleChoiceField(BaseField):
         kwargs['choices'] = [row.split(',',1) for row in kwargs['choices'].split('\n')]
         return self.field(**data)
 
-field_registry.register_field('MultipleChoiceField', MultipleChoiceField)
+registry.register_field('MultipleChoiceField', MultipleChoiceField)
 
 class DateField(BaseField):
     field = forms.DateField
     identities = ['DateField']
 
-field_registry.register_field('DateField', DateField)
+registry.register_field('DateField', DateField)
 
 class DateTimeField(BaseField):
     field = forms.DateTimeField
     identities = ['DateTimeField']
 
-field_registry.register_field('DateTimeField', DateTimeField)
+registry.register_field('DateTimeField', DateTimeField)
 
 class DecimalFieldForm(BaseFieldForm):
     max_value = forms.IntegerField(required=False)
@@ -124,19 +124,19 @@ class DecimalField(BaseField):
     field = forms.DecimalField
     identities = ['DecimalField']
 
-field_registry.register_field('DecimalField', DecimalField)
+registry.register_field('DecimalField', DecimalField)
 
 class EmailField(CharField):
     field = forms.EmailField
     identities = ['EmailField']
 
-field_registry.register_field('EmailField', EmailField)
+registry.register_field('EmailField', EmailField)
 
 class FileField(BaseField):
     field = forms.FileField
     identities = ['FileField']
 
-field_registry.register_field('FileField', FileField)
+registry.register_field('FileField', FileField)
 
 class FloatFieldForm(BaseFieldForm):
     max_value = forms.IntegerField(required=False)
@@ -147,13 +147,13 @@ class FloatField(BaseField):
     field = forms.FloatField
     identities = ['FloatField']
 
-field_registry.register_field('FloatField', FloatField)
+registry.register_field('FloatField', FloatField)
 
 class ImageField(BaseField):
     field = forms.ImageField
     identities = ['FileField', 'ImageField']
 
-field_registry.register_field('ImageField', ImageField)
+registry.register_field('ImageField', ImageField)
 
 class IntegerFieldForm(BaseFieldForm):
     max_value = forms.IntegerField(required=False)
@@ -164,19 +164,19 @@ class IntegerField(BaseField):
     field = forms.IntegerField
     identities = ['IntegerField']
 
-field_registry.register_field('IntegerField', IntegerField)
+registry.register_field('IntegerField', IntegerField)
 
 class IPAddressField(BaseField):
     field = forms.IPAddressField
     identities = ['IPAddressField']
 
-field_registry.register_field('IPAddressField', IPAddressField)
+registry.register_field('IPAddressField', IPAddressField)
 
 class NullBooleanField(BaseField):
     field = forms.NullBooleanField
     identities = ['NullBooleanField']
 
-field_registry.register_field('NullBooleanField', NullBooleanField)
+registry.register_field('NullBooleanField', NullBooleanField)
 
 class RegexFieldForm(CharFieldForm):
     regex = forms.CharField()
@@ -186,19 +186,19 @@ class RegexField(BaseField):
     field = forms.RegexField
     identities = ['RegexField']
 
-field_registry.register_field('RegexField', RegexField)
+registry.register_field('RegexField', RegexField)
 
 class SlugField(BaseField):
     field = forms.SlugField
     identities = ['SlugField']
 
-field_registry.register_field('SlugField', SlugField)
+registry.register_field('SlugField', SlugField)
 
 class TimeField(BaseField):
     field = forms.TimeField
     identities = ['TimeField']
 
-field_registry.register_field('TimeField', TimeField)
+registry.register_field('TimeField', TimeField)
 
 class URLFieldForm(BaseFieldForm):
     max_length = forms.IntegerField(required=False)
@@ -211,7 +211,7 @@ class URLField(BaseField):
     field = forms.URLField
     identities = ['URLField']
 
-field_registry.register_field('URLField', URLField)
+registry.register_field('URLField', URLField)
 
 class BaseFormSetField(BaseField):
     formset = spec_widget.BaseListFormSet
@@ -242,10 +242,10 @@ class FormField(BaseFormSetField):
         for entry in data:
             if entry:
                 entries.append(entry)
-        form = field_registry.form_specifications['base.1'].create_form(entries)
+        form = registry.form_specifications['base.1'].create_form(entries)
         return self.field(form=form)
 
-field_registry.register_field('FormField', FormField)
+registry.register_field('FormField', FormField)
 
 class ListFormField(BaseFormSetField):
     form = FieldEntryForm
@@ -257,8 +257,8 @@ class ListFormField(BaseFormSetField):
         for entry in data:
             if entry:
                 entries.append(entry)
-        form = field_registry.form_specifications['base.1'].create_form(entries)
+        form = registry.form_specifications['base.1'].create_form(entries)
         return self.field(form=form)
 
-field_registry.register_field('ListFormField', ListFormField)
+registry.register_field('ListFormField', ListFormField)
 

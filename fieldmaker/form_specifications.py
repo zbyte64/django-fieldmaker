@@ -1,10 +1,13 @@
 from django import forms
 from django.utils.datastructures import SortedDict
 
-from resource import field_registry
+from resource import registry, FieldRegistry
 from spec_widget import MetaForm
 
 class FormSpecification(object):
+    def __init__(self):
+        self.field_registry = FieldRegistry()
+    
     version = 'base.1'
     example = [
                    {'name':'email',
@@ -25,8 +28,12 @@ class FormSpecification(object):
         field_dict = SortedDict()
         for field_def in data:
             #fetch the makers
-            field_maker = field_registry.fields[field_def['field']]
-            widget_maker = field_registry.widgets[field_def['widget']]
+            try:
+                field_maker = self.field_registry.fields[field_def['field']]
+            except KeyError:
+                print self, self.field_registry.fields
+                raise
+            widget_maker = self.field_registry.widgets[field_def['widget']]
             
             widget = widget_maker.create_widget(field_def['widget_spec'])
             field_kwargs = field_def['field_spec']
@@ -37,6 +44,22 @@ class FormSpecification(object):
     
     def extend_form(self, form, data):
         form.fields.update(self.get_fields(data))
+    
+    def register_field(self, name, field):
+        self.field_registry.register_field(name, field)
+    
+    def register_widget(self, name, widget):
+        self.field_registry.register_widget(name, widget)
+    
+    @property
+    def fields(self):
+        return self.field_registry.fields
+    
+    @property
+    def widgets(self):
+        return self.field_registry.widgets
 
-field_registry.register_form_specification(FormSpecification.version, FormSpecification())
+default_form_specification = FormSpecification()
+
+registry.register_form_specification(FormSpecification.version, default_form_specification)
 

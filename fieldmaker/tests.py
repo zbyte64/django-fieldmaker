@@ -5,7 +5,7 @@ from django.db import models
 from django.core.files.base import ContentFile
 
 from resource import field_registry
-from form_specifications import FormSpecification
+from form_specifications import default_form_specification
 from forms import ExpandableModelForm
 from models import FormDefinition, GenericObjectStore
 from modelfields import FacetField
@@ -16,7 +16,7 @@ class TestModel(models.Model):
 
 class FormSpecificationTestCase(unittest.TestCase):
     def test_create_form(self):
-        spec = FormSpecification()
+        spec = default_form_specification
         form_cls = spec.create_form(spec.example)
         self.assertEqual(len(form_cls.base_fields), len(spec.example))
         form = form_cls()
@@ -24,7 +24,7 @@ class FormSpecificationTestCase(unittest.TestCase):
         assert 'email' in form.fields
     
     def test_get_fields(self):
-        spec = FormSpecification()
+        spec = default_form_specification
         fields = spec.get_fields(spec.example)
         self.assertEqual(len(fields), len(spec.example))
 

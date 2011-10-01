@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.admin import widgets as admin_widgets
 from django.forms import widgets
 
-from fieldmaker.resource import field_registry
+from fieldmaker.resource import registry
 from fieldmaker.spec_widget import ListFormField, FieldEntryForm
 from fieldmaker.forms import ExpandableModelForm
 from fieldmaker.models import FormDefinition
@@ -46,10 +46,13 @@ class AdminFormDefinitionForm(ExpandableAdminModelForm):
         self.post_form_init()
         self.field_forms = dict()
         self.widget_forms = dict()
-        for key, entry in field_registry.fields.iteritems():
+        for key, entry in self.get_form_spec().fields.iteritems():
             self.field_forms[key] = entry.render_for_admin(key)
-        for key, entry in field_registry.widgets.iteritems():
+        for key, entry in self.get_form_spec().widgets.iteritems():
             self.widget_forms[key] = entry.render_for_admin(key)
+    
+    def get_form_spec(self):
+        return registry.form_specifications[self.fields['data'].form_cls.form_spec_version]
     
     def save(self, *args, **kwargs):
         instance = forms.ModelForm.save(self, *args, **kwargs)

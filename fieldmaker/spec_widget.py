@@ -4,7 +4,7 @@ from django.forms.formsets import formset_factory, BaseFormSet
 from django.utils.safestring import mark_safe
 from django.forms.util import flatatt
 
-from resource import field_registry
+from resource import field_registry, registry
 
 def compare_dict(data1, data2):
     if set(data1.iterkeys()) != set(data2.iterkeys()):
@@ -228,6 +228,8 @@ class MetaForm(forms.Form, MetaFormMixin):
         self.post_form_init()
 
 class FieldEntryForm(forms.Form):
+    form_spec_version = 'base.1'
+    
     name = forms.SlugField(required=True)
     field = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class':'vFieldSelectorField'}))
     field_spec = forms.CharField(required=False, widget=FormWidget(attrs={'class':'vFieldSpecField'}))
@@ -241,12 +243,15 @@ class FieldEntryForm(forms.Form):
         self.load_field_form()
         self.load_widget_form()
     
+    def get_form_spec(self):
+        return registry.form_specifications[self.form_spec_version]
+    
     def populate_field_choices(self):
-        choices = field_registry.fields.keys()
+        choices = self.get_form_spec().fields.keys()
         self.fields['field'].choices = [('', 'Select Field')] + zip(choices, choices)
     
     def populate_widget_choices(self):
-        choices = field_registry.widgets.keys()
+        choices = self.get_form_spec().widgets.keys()
         self.fields['widget'].choices = [('', 'Select Widget')] + zip(choices, choices)
     
     def get_active_field_value(self, field_name):
@@ -256,9 +261,9 @@ class FieldEntryForm(forms.Form):
         
         value = mapping = None
         if field_name == 'widget':
-            mapping = field_registry.widgets
+            mapping = self.get_form_spec().widgets
         elif field_name == 'field':
-            mapping = field_registry.fields
+            mapping = self.get_form_spec().fields
         
         if hasattr(self, 'cleaned_data') and value in self.cleaned_data:
             value = self.cleaned_data[field_name]
