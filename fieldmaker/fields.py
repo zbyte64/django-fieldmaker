@@ -230,10 +230,8 @@ class BaseFormSetField(BaseField):
         parts.append(u'<tr class="dynamic-form empty-form"><td><table class="module">%s</table></td></tr>' % (form.empty_form.as_table()))
         return mark_safe(u'<div class="%s dynamic-set">%s<table> %s</table></div>' % (key, unicode(form.management_form), u'\n'.join(parts)))
 
-from admin.forms import FieldEntryForm
-
 class FormField(BaseFormSetField):
-    form = FieldEntryForm
+    form = spec_widget.FieldEntryForm
     field = spec_widget.FormField
     identities = ['FormField']
     
@@ -248,7 +246,7 @@ class FormField(BaseFormSetField):
 registry.register_field('FormField', FormField)
 
 class ListFormField(BaseFormSetField):
-    form = FieldEntryForm
+    form = spec_widget.FieldEntryForm
     field = spec_widget.ListFormField
     identities = ['ListFormField']
     
