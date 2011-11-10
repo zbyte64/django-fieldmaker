@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 VERSION = '0.0.1'
 LONG_DESC = """\
@@ -24,9 +27,6 @@ setup(name='django-fieldmaker',
       maintainer_email = 'zbyte64@gmail.com',
       url='http://github.com/cuker/',
       license='New BSD License',
-      packages=find_packages(exclude=['ez_setup', 'tests']),
-      zip_safe=True,
-      install_requires=[
-      ],
+      packages=['fieldmaker'],
       test_suite='tests.runtests.runtests',
       )
