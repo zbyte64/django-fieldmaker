@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 LONG_DESC = """\
 
 """
@@ -27,6 +27,6 @@ setup(name='django-fieldmaker',
       maintainer_email = 'zbyte64@gmail.com',
       url='http://github.com/cuker/',
       license='New BSD License',
-      packages=['fieldmaker'],
+      packages=find_packages(exclude=['test']),
       test_suite='tests.runtests.runtests',
       )
