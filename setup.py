@@ -7,12 +7,14 @@ except ImportError:
 
 VERSION = '0.0.2'
 LONG_DESC = """\
-
+This package enables you to design forms in the Django admin.
+These forms can be used in your code or to extend existing forms in the admin itself.
+Other libraries may register new fields or widgets for the designer to use.
 """
 
 setup(name='django-fieldmaker',
       version=VERSION,
-      description="",
+      description="Dynamic form management in django",
       long_description=LONG_DESC,
       classifiers=[
           'Programming Language :: Python',
