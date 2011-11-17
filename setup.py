@@ -31,4 +31,5 @@ setup(name='django-fieldmaker',
       license='New BSD License',
       packages=find_packages(exclude=['test']),
       test_suite='tests.runtests.runtests',
+      include_package_data = True,
       )
