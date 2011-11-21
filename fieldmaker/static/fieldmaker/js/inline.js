@@ -14,6 +14,7 @@
  * Licensed under the New BSD License
  * See: http://www.opensource.org/licenses/bsd-license.php
  */
+ //TODO fix this for nest fieldsets
 (function($) {
 	$.fn.formset2 = function(opts) {
 		var options = $.extend({}, $.fn.formset.defaults, opts);
@@ -162,11 +163,13 @@
             if (!rows) return;
             
             var field_form = $this.find('.empty-form')
+            /* //enabling this breaks normal inline behavior
             field_form.find(':input').each(function() {
                 var field_name = $(this).attr('name');
                 $(this).attr('name', field_name.replace(/.*\-/, prefix+'-'));
                 $(this).attr('id', 'id_'+$(this).attr('name'));
             });
+            */
             field_form.attr('id', prefix+'-empty');
             
             rows.formset2({
