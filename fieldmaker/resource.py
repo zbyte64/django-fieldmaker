@@ -5,6 +5,7 @@ class Registry(object):
     
     def __init__(self):
         self.widgets = dict()
+        self.fields = dict()
         self.form_specifications = dict()
     
     def register_form_specification(self, name, specification):
@@ -17,6 +18,11 @@ class Registry(object):
         import form_specifications
         for version in versions or self.default_versions:
             self.form_specifications[version].register_field(name, field)
+        
+        assert name not in self.fields
+        if isinstance(field, type):
+            field = field()
+        self.fields[name] = field
     
     def register_widget(self, name, widget, versions=None):
         import form_specifications

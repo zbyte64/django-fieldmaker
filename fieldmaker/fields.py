@@ -2,6 +2,7 @@ from django import forms
 from django.forms import widgets
 from django.forms.formsets import formset_factory
 from django.utils.safestring import mark_safe
+from django.contrib.contenttypes.models import ContentType
 
 from resource import registry
 from utils import prep_for_kwargs
@@ -97,7 +98,7 @@ class MultipleChoiceField(BaseField):
         if widget:
             kwargs['widget'] = widget
         kwargs['choices'] = [row.split(',',1) for row in kwargs['choices'].split('\n')]
-        return self.field(**data)
+        return self.field(**kwargs)
 
 registry.register_field('MultipleChoiceField', MultipleChoiceField)
 
@@ -212,6 +213,30 @@ class URLField(BaseField):
     identities = ['URLField']
 
 registry.register_field('URLField', URLField)
+
+class ModelChoiceFieldForm(BaseFieldForm):
+    model = forms.ModelChoiceField(queryset=ContentType.objects.all())
+    
+    def clean(self):
+        if not self._errors:
+            self.cleaned_data['model'] = self.cleaned_data['model'].pk
+        return self.cleaned_data
+
+class ModelChoiceField(BaseField):
+    form = ModelChoiceFieldForm
+    field = forms.ModelChoiceField
+    identities = ['ChoiceField']
+    
+    def create_field(self, data, widget=None):
+        kwargs = prep_for_kwargs(data)
+        if widget:
+            kwargs['widget'] = widget
+        ct_id = kwargs.pop('model')
+        model = ContentType.objects.get(pk=ct_id).model_class()
+        kwargs['queryset'] = model.objects.all()
+        return self.field(**kwargs)
+
+registry.register_field('ModelChoiceField', ModelChoiceField)
 
 class BaseFormSetField(BaseField):
     formset = spec_widget.BaseListFormSet
